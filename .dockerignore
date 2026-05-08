@@ -1,0 +1,43 @@
+# ============================================================================
+# 切片 02 / T-INFRA-02 — 减小 docker build context
+# ============================================================================
+# Node / 构建产物
+node_modules
+**/node_modules
+dist
+**/dist
+coverage
+**/coverage
+.nyc_output
+.cache
+*.tsbuildinfo
+
+# Git / IDE / OS
+.git
+.gitignore
+.idea
+.vscode
+.DS_Store
+*.log
+
+# 文档（镜像运行不需要）
+docs
+*.md
+findings.md
+progress.md
+research.md
+task_plan.md
+
+# 测试 / 质量
+junit.xml
+.eslintcache
+
+# Docker 自身（避免循环 COPY）
+docker-compose*.yml
+Dockerfile
+**/Dockerfile
+
+# 本地 env（dev 模板会通过 env_file 单独挂载，不应进镜像）
+.env
+.env.*
+!packages/*/.env.example

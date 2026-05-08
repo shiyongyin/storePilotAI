@@ -1,0 +1,99 @@
+# ============================================================================
+# 门店助手 Agent V1 — Kubernetes Deployment（切片 20 / T-OPS-01 §8.6 落地）
+#
+# 关键约束（任务卡 20 §7 MUST DO + MUST NOT）：
+#   1. terminationGracePeriodSeconds: 35      → 25s SSE + 10s 保险（任务卡 §7 §5）
+#   2. liveness 仅 `/health`                   → 不得包含 mcp / 模型 readiness 子项
+#                                                （MCP / 外网模型抖动会反复杀容器）
+#   3. readiness 走 `/health/ready`            → 内部聚合 db + mcp，不调 model
+#                                                （外网模型抖动 = 所有 pod 不可用）
+#   4. preStop hook 给容器注入 5s sleep，让 K8s endpoint 摘除流量后再 SIGTERM
+#      （Pod terminating 期间 readiness false，但已建立的 SSE 仍要走完）
+#   5. resources.requests/limits 最小集；CPU/Mem 按 7100 单进程 Hono + Mastra + mysql2 池粗调
+#   6. ConfigMap / Secret 占位（需运维生成；不入仓）
+#
+# 验收守门（任务卡 §9 step 8 + step 9）：
+#   - liveness 区域内**不得**出现 mcp / model readiness 子项
+#   - terminationGracePeriodSeconds 必须 >= 35
+# ============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-service
+  namespace: storepilot
+  labels:
+    app: agent-service
+    component: agent
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: agent-service
+  template:
+    metadata:
+      labels:
+        app: agent-service
+        component: agent
+    spec:
+      # 切片 20 §7 MUST DO §5 — 优雅停机预算：25s SSE + 10s 保险
+      terminationGracePeriodSeconds: 35
+      containers:
+        - name: agent-service
+          image: storepilot/agent-service:prod
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7100
+          envFrom:
+            - configMapRef:
+                name: agent-service-config
+            - secretRef:
+                name: agent-service-secret
+          # ---------- liveness：仅 /health（任务卡 §7 MUST NOT §1） ----------
+          # 不得引入 mcp / model 子项；MCP / 外网模型抖动反复杀容器 = 雪崩。
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          # ---------- readiness：仅 /health/ready，内部聚合 db + mcp，不含 model ----------
+          # 任务卡 §7 MUST NOT §4：把 model 健康检查塞进 readiness = 外网抖动让所有 pod 不可用。
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
+          # ---------- preStop：让 K8s endpoint 摘流量先于 SIGTERM 业务清理 ----------
+          # 1. preStop sleep 5s → readiness 失败被探到，service endpoint 移除该 pod
+          # 2. 之后 kubelet 才发 SIGTERM；server.ts shutdown 拿到的就是不再有新流量
+          # 3. terminationGracePeriodSeconds=35 涵盖 5s sleep + 25s SSE + 5s 释放余量
+          lifecycle:
+            preStop:
+              exec:
+                command: ['/bin/sh', '-c', 'sleep 5']
+          resources:
+            requests:
+              cpu: '500m'
+              memory: '512Mi'
+            limits:
+              cpu: '1500m'
+              memory: '1Gi'
+          # 切片 20 §7 MUST NOT §6：禁止 root，dist 镜像已 USER app（切片 02 Dockerfile 守门）
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ['ALL']

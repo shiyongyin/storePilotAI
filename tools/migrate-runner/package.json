@@ -1,0 +1,27 @@
+{
+  "name": "@storepilot/tools-migrate-runner",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/migrate.js",
+  "bin": {
+    "migrate": "./dist/migrate.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint src --ext .ts",
+    "test:rollback": "tsx --test src/rollback-plan.test.ts",
+    "typecheck": "tsc --noEmit",
+    "exec": "tsx src/migrate.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "mysql2": "^3.11.0",
+    "umzug": "^3.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}

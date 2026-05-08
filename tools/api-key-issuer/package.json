@@ -1,0 +1,27 @@
+{
+  "name": "@storepilot/tools-api-key-issuer",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/issue.js",
+  "bin": {
+    "issue": "./dist/issue.js"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "exec": "tsx src/issue.ts"
+  },
+  "dependencies": {
+    "argon2": "^0.40.3",
+    "dotenv": "^16.4.5",
+    "mysql2": "^3.11.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}

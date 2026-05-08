@@ -1,0 +1,28 @@
+{
+  "name": "@storepilot/tools-seed-strategy",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "seed-strategy": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/index.test.ts",
+    "exec": "tsx src/index.ts",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@storepilot/shared-contracts": "workspace:*",
+    "dotenv": "^16.4.5",
+    "mysql2": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}

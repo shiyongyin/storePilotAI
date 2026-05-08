@@ -1,0 +1,78 @@
+# ============================================================================
+# 门店助手 Agent V1 — 生产 Docker Compose（切片 20 / T-OPS-01 §8.5 落地）
+#
+# 与 docker-compose.dev.yml 的关键差异（任务卡 20 §7 MUST DO §8 + MUST NOT §5）：
+#   1. **不启用 dev 期 MCP mock 镜像**  → 生产 MCP 必须接真实 ERP（V1 灰度阶段也通过 ENV 切换 URL，
+#                                        但镜像层不再带 mock 进程；切片 21 V2 切真实 ERP 时 ERP_MCP_SERVER_URL 切换）。
+#   2. **不启用 lobechat / lobechat-postgres** → LobeChat 由独立部署单元承载（运维手册 §10）。
+#   3. **不启用 mysql 镜像内置实例**   → 生产 MySQL 由 RDS / 内部 DB 集群承载，仅以 ENV `DATABASE_URL` 注入。
+#   4. agent-service 必须 `terminationGracePeriodSeconds=35` 等价（compose 用 `stop_grace_period: 35s`）。
+#   5. healthcheck path = `/health`（仅 liveness，不含 mcp / model；任务卡 §7 MUST NOT §1）。
+#   6. restart: unless-stopped 给生产保留手动停机控制权（任务卡 §7 MUST DO §4：SIGTERM 25s 优雅停机后才退出）。
+#
+# 验收（任务卡 20 §9 step 7）：grep 该 dev mock 服务名 → 0 命中
+#
+# 部署流程：
+#   docker compose -f deploy/docker-compose.prod.yml pull
+#   docker compose -f deploy/docker-compose.prod.yml up -d
+#   curl -f http://127.0.0.1:7100/health/ready   # readiness 聚合 db + mcp
+# ============================================================================
+
+services:
+  # --------------------------------------------------------------------------
+  # Agent Service — 主服务（Hono + Mastra + MCPClient + DraftManager…）
+  # 生产环境通过 env_file: /etc/storepilot/agent.prod.env 注入 4 大 Secret
+  # （MODEL_API_KEY / AGENT_API_KEY_HASH_SALT / MCP_TENANT_SHARED_SECRET / DATABASE_URL）；
+  # 该文件由运维 SOP 维护，禁入 Git 仓库。
+  # --------------------------------------------------------------------------
+  agent-service:
+    image: storepilot/agent-service:${AGENT_IMAGE_TAG:-prod}
+    container_name: storepilot-agent-service
+    restart: unless-stopped
+    env_file:
+      - /etc/storepilot/agent.prod.env
+    environment:
+      NODE_ENV: production
+    ports:
+      - '7100:7100'
+    healthcheck:
+      # 生产 healthcheck 必须只用 /health（liveness）；
+      # readinessProbe 由 Nginx upstream 健康检查 + K8s readiness 接管。
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:7100/health']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+    # 切片 20 §7 MUST DO §5 — terminationGracePeriodSeconds 等价：25s SSE + 10s 保险
+    stop_grace_period: 35s
+    networks:
+      - storepilot-prod-net
+
+  # --------------------------------------------------------------------------
+  # Nginx — TLS 终结 + SSE 反向代理（buffering off + HTTP/1.1）
+  # 配置文件来自 deploy/nginx.conf；TLS 证书走外挂 secret 卷
+  # --------------------------------------------------------------------------
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: storepilot-nginx
+    restart: unless-stopped
+    depends_on:
+      agent-service:
+        condition: service_healthy
+    ports:
+      - '443:443'
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/agent.conf:ro
+      - /etc/storepilot/tls:/etc/nginx/tls:ro
+    networks:
+      - storepilot-prod-net
+
+# ----------------------------------------------------------------------------
+# 显式声明：生产 compose 中**无 dev 期 mock 服务 / lobechat / mysql / lobechat-postgres**。
+# 这些服务任意一个出现在本文件 = 部署失败（任务卡 §9 step 7 grep 守门）。
+# 严格守门：`rg "mock" deploy/docker-compose.prod.yml` 必须 0 命中（任务卡 §7 MUST NOT §5）。
+# ----------------------------------------------------------------------------
+
+networks:
+  storepilot-prod-net:
+    driver: bridge

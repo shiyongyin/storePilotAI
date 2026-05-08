@@ -1,0 +1,157 @@
+# ============================================================================
+# 门店助手 Agent V1 — 本地开发五件套（切片 02 / T-INFRA-02）
+# 顺序硬约束：MySQL → migrations → MCP Mock → Agent Service → LobeChat
+# Secret 全部走 env_file（MODEL_API_KEY / AGENT_API_KEY_HASH_SALT /
+# MCP_TENANT_SHARED_SECRET 等不得在本文件出现）。
+# 仅 dev 占位的容器内部密码（rootpw / pgpw）允许明文，因任务卡 §5 已豁免。
+# 生产环境另起 docker-compose.prod.yml（不交付，本切片仅在 README 注明）；
+# 生产 compose **必须不启用** mcp-mock-server。
+# ============================================================================
+
+services:
+  # --------------------------------------------------------------------------
+  # MySQL — 业务真相单源（agent_*、replenishment_*、mastra_workflow_*）
+  # --------------------------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: storepilot-mysql
+    restart: unless-stopped
+    command:
+      - '--character-set-server=utf8mb4'
+      - '--collation-server=utf8mb4_unicode_ci'
+      - '--default-authentication-plugin=mysql_native_password'
+      - '--explicit-defaults-for-timestamp=ON'
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpw
+      MYSQL_DATABASE: store_pilot
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-prootpw']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    networks:
+      - storepilot-net
+
+  # --------------------------------------------------------------------------
+  # LobeChat 自带 Postgres — 仅承载 LobeChat 会话/账户；业务表禁止入库
+  # LobeChat database 镜像迁移会执行 CREATE EXTENSION vector，需 pgvector 版 PG16。
+  # --------------------------------------------------------------------------
+  lobechat-postgres:
+    image: pgvector/pgvector:pg16
+    container_name: storepilot-lobechat-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pgpw
+      POSTGRES_DB: lobechat
+    volumes:
+      - lobechat-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d lobechat']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    networks:
+      - storepilot-net
+
+  # --------------------------------------------------------------------------
+  # MCP Mock — V1 模拟 ERP MCP（7 工具白名单将在切片 05 完整化）
+  # --------------------------------------------------------------------------
+  mcp-mock-server:
+    build:
+      context: .
+      dockerfile: packages/mcp-mock-server/Dockerfile
+    image: storepilot/mcp-mock-server:dev
+    container_name: storepilot-mcp-mock-server
+    restart: unless-stopped
+    env_file:
+      - .env.mock.dev
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - '7300:7300'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:7300/health']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    networks:
+      - storepilot-net
+
+  # --------------------------------------------------------------------------
+  # Agent Service — 主服务（Hono + Mastra + MCPClient + DraftManager…）
+  # depends_on 必须 healthy（service_started 不够）：MySQL 没就绪 = 启动失败
+  # --------------------------------------------------------------------------
+  agent-service:
+    build:
+      context: .
+      dockerfile: packages/agent-service/Dockerfile
+    image: storepilot/agent-service:dev
+    container_name: storepilot-agent-service
+    restart: unless-stopped
+    env_file:
+      - .env.agent.dev
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mcp-mock-server:
+        condition: service_healthy
+    ports:
+      - '7100:7100'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:7100/health']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+    # 优雅停机预留 35s（25s SSE 完成 + 10s 保险）— 与切片 20 §5.4 联动
+    stop_grace_period: 35s
+    networks:
+      - storepilot-net
+
+  # --------------------------------------------------------------------------
+  # LobeChat — UI 入口；OPENAI_PROXY_URL 必须以 /v1 结尾（在 .env.lobechat.dev）
+  # 必须等 agent-service healthy 后才启动，避免首屏 OPENAI_API_KEY 校验抖动
+  # --------------------------------------------------------------------------
+  # 当前 dev 用 client 镜像（lobehub/lobe-chat:latest）+ ACCESS_CODE 单密码，
+  # 不依赖 NextAuth / lobechat-postgres；切回 server 模式 + 真实 OAuth 时
+  # 改回 lobehub/lobe-chat-database:latest 并取消 .env.lobechat.dev 中相应注释。
+  lobechat:
+    image: lobehub/lobe-chat:latest
+    container_name: storepilot-lobechat
+    restart: unless-stopped
+    env_file:
+      - .env.lobechat.dev
+    depends_on:
+      agent-service:
+        condition: service_healthy
+    ports:
+      - '3210:3210'
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "node -e \"fetch('http://127.0.0.1:3210').then(r=>process.exit(r.ok||r.status===307?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    networks:
+      - storepilot-net
+
+volumes:
+  mysql-data:
+  lobechat-pg-data:
+
+networks:
+  storepilot-net:
+    driver: bridge

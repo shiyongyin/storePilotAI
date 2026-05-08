@@ -1,0 +1,39 @@
+{
+  "name": "@storepilot/mcp-mock-server",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/server.js",
+  "exports": {
+    ".": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    },
+    "./test-utils": {
+      "types": "./dist/test-utils.d.ts",
+      "import": "./dist/test-utils.js"
+    }
+  },
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@storepilot/shared-contracts": "workspace:*",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "pino": "^9.4.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.7.0",
+    "typescript": "^5.5.4"
+  }
+}

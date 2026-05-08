@@ -1,0 +1,23 @@
+# ============================================================================
+# 门店助手 Agent V1 — Kubernetes Service（切片 20 / T-OPS-01 §8.6 配套）
+#
+# 仅暴露 ClusterIP；外部访问由 deploy/nginx.conf 反代承担（切片 20 §8.4）。
+# Nginx → service:7100 → agent-service:7100；service 端口 = container 端口避免转发偏移。
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-service
+  namespace: storepilot
+  labels:
+    app: agent-service
+    component: agent
+spec:
+  type: ClusterIP
+  selector:
+    app: agent-service
+  ports:
+    - name: http
+      port: 7100
+      targetPort: http
+      protocol: TCP

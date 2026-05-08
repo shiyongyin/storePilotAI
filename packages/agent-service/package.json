@@ -1,0 +1,43 @@
+{
+  "name": "@storepilot/agent-service",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/server.js",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^2.0.0",
+    "@hono/node-server": "^1.13.7",
+    "@mastra/core": "1.0.0",
+    "@mastra/loggers": "1.0.0",
+    "@mastra/mcp": "1.0.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.55.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.55.0",
+    "@opentelemetry/sdk-node": "^0.55.0",
+    "@storepilot/shared-contracts": "workspace:*",
+    "ai": "^5.0.0",
+    "argon2": "^0.40.3",
+    "dayjs": "^1.11.20",
+    "dotenv": "^16.4.5",
+    "grapheme-splitter": "^1.0.4",
+    "hono": "^4.6.0",
+    "lru-cache": "^11.0.0",
+    "mysql2": "^3.11.0",
+    "pino": "^9.4.0",
+    "ulid": "^3.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@storepilot/mcp-mock-server": "workspace:*",
+    "@types/node": "^22.7.0",
+    "typescript": "^5.5.4"
+  }
+}

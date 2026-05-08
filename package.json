@@ -1,0 +1,53 @@
+{
+  "name": "storepilot-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "门店助手 Agent V1 — Monorepo (slice 01 baseline)",
+  "engines": {
+    "node": ">=22.13.0 <23",
+    "pnpm": ">=9.7.0 <10"
+  },
+  "packageManager": "pnpm@9.7.0",
+  "scripts": {
+    "build": "pnpm -r --parallel build",
+    "lint": "pnpm -r --parallel lint",
+    "typecheck": "pnpm -r --parallel exec tsc --noEmit",
+    "test": "node tools/run-vitest-integration.mjs",
+    "test:integration": "node tools/run-vitest-integration.mjs",
+    "test:e2e": "node tools/run-vitest-e2e.mjs",
+    "test:e2e:v2": "node tools/verify-v2-mcp.mjs --require-agent-health",
+    "test:cov": "vitest run --coverage",
+    "cov:check": "node tools/cov-check.mjs",
+    "check:consistency": "node tools/consistency-check.mjs",
+    "migrate:up": "pnpm --filter @storepilot/tools-migrate-runner exec tsx src/migrate.ts up",
+    "migrate:down": "pnpm --filter @storepilot/tools-migrate-runner exec tsx src/migrate.ts down",
+    "issue:apikey": "pnpm --filter @storepilot/tools-api-key-issuer exec tsx src/issue.ts",
+    "dev:agent": "pnpm --filter @storepilot/agent-service dev",
+    "dev:mcp": "pnpm --filter @storepilot/mcp-mock-server dev",
+    "verify:slice13": "node tools/verify-slice-13.mjs",
+    "verify:slice14": "node tools/verify-slice-14.mjs",
+    "verify:slice16": "node tools/verify-slice-16.mjs",
+    "verify:slice17": "node tools/verify-slice-17.mjs",
+    "verify:slice21": "node tools/verify-slice-21.mjs",
+    "verify:slice08": "node tools/verify-slice-08.mjs --all"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "@vitest/coverage-v8": "^2.0.5",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "@ai-sdk/provider-utils>zod": "4",
+        "@ai-sdk/ui-utils>zod": "4"
+      }
+    }
+  }
+}
