@@ -1,0 +1,341 @@
+{
+  "generatedAt": "2026-05-08",
+  "sourceCounts": {
+    "sourceTsFiles": 153,
+    "sourceTsNonTestFiles": 90,
+    "testFiles": 93,
+    "docsMarkdownFiles": 61,
+    "migrationSqlFiles": 12,
+    "tablesDetected": 13
+  },
+  "srcFiles": [
+    "packages/agent-service/src/api/business-report-dispatcher.ts",
+    "packages/agent-service/src/api/chat-completions.ts",
+    "packages/agent-service/src/api/health.ts",
+    "packages/agent-service/src/bridge/auth.ts",
+    "packages/agent-service/src/bridge/grapheme.ts",
+    "packages/agent-service/src/bridge/output-guard.ts",
+    "packages/agent-service/src/bridge/session.ts",
+    "packages/agent-service/src/bridge/sse.ts",
+    "packages/agent-service/src/config/env.ts",
+    "packages/agent-service/src/mastra/agents/general-qa.ts",
+    "packages/agent-service/src/mastra/agents/index.ts",
+    "packages/agent-service/src/mastra/agents/intent-classifier.ts",
+    "packages/agent-service/src/mastra/agents/intent-router.ts",
+    "packages/agent-service/src/mastra/agents/requirement-collector.ts",
+    "packages/agent-service/src/mastra/agents/skill-registry.ts",
+    "packages/agent-service/src/mastra/index.ts",
+    "packages/agent-service/src/mastra/llm-provider.ts",
+    "packages/agent-service/src/mastra/mcp/client.ts",
+    "packages/agent-service/src/mastra/runtime-context.ts",
+    "packages/agent-service/src/mastra/storage/mysql-adapter.ts",
+    "packages/agent-service/src/mastra/storage/sql.ts",
+    "packages/agent-service/src/mastra/storage/strip-undefined-deep.ts",
+    "packages/agent-service/src/mastra/workflows/business-daily-report.ts",
+    "packages/agent-service/src/mastra/workflows/business-monthly-report.ts",
+    "packages/agent-service/src/mastra/workflows/business-report-validation.ts",
+    "packages/agent-service/src/mastra/workflows/index.ts",
+    "packages/agent-service/src/mastra/workflows/purchase-order-create.ts",
+    "packages/agent-service/src/mastra/workflows/replenishment-adjustment.ts",
+    "packages/agent-service/src/mastra/workflows/replenishment-forecast.ts",
+    "packages/agent-service/src/observability/logger.ts",
+    "packages/agent-service/src/observability/metrics.ts",
+    "packages/agent-service/src/observability/otel.ts",
+    "packages/agent-service/src/observability/trace.ts",
+    "packages/agent-service/src/prompts/adjustment-extractor.prompt.ts",
+    "packages/agent-service/src/prompts/daily-report.prompt.ts",
+    "packages/agent-service/src/prompts/monthly-report.prompt.ts",
+    "packages/agent-service/src/prompts/replenishment-forecast.prompt.ts",
+    "packages/agent-service/src/safety/active-streams.ts",
+    "packages/agent-service/src/safety/confirm-manager.ts",
+    "packages/agent-service/src/safety/draft-manager.ts",
+    "packages/agent-service/src/safety/jobs/compensate-mark-submitted.ts",
+    "packages/agent-service/src/safety/jobs/expire-drafts.ts",
+    "packages/agent-service/src/safety/jobs/expire-suspended-runs.ts",
+    "packages/agent-service/src/safety/mysql-strategy-loader.ts",
+    "packages/agent-service/src/safety/numbers.ts",
+    "packages/agent-service/src/safety/output-validator.ts",
+    "packages/agent-service/src/safety/strategy-cache.ts",
+    "packages/agent-service/src/safety/strategy-engine.ts",
+    "packages/agent-service/src/server.ts",
+    "packages/agent-service/src/skills/replenishment/assert-draft-can-create-po.ts",
+    "packages/agent-service/src/skills/replenishment/calculator.ts",
+    "packages/agent-service/src/skills/replenishment/compose-markdown.ts",
+    "packages/agent-service/src/skills/replenishment/compose-po-preview.ts",
+    "packages/agent-service/src/skills/replenishment/instruction-extractor.ts",
+    "packages/agent-service/src/skills/replenishment/matcher.ts",
+    "packages/agent-service/src/skills/reports/compose-markdown.ts",
+    "packages/agent-service/src/test-helpers/mcp-in-process.ts",
+    "packages/agent-service/src/test-helpers/sse-collect.ts",
+    "packages/mcp-mock-server/src/app.ts",
+    "packages/mcp-mock-server/src/config/env.ts",
+    "packages/mcp-mock-server/src/fixtures/create-po-idempotent/index.ts",
+    "packages/mcp-mock-server/src/fixtures/cross-tenant-denied/index.ts",
+    "packages/mcp-mock-server/src/fixtures/empty-inventory/index.ts",
+    "packages/mcp-mock-server/src/fixtures/happy-path/index.ts",
+    "packages/mcp-mock-server/src/fixtures/missing-category-ratio/index.ts",
+    "packages/mcp-mock-server/src/fixtures/slow-sales-summary/index.ts",
+    "packages/mcp-mock-server/src/mcp-server.ts",
+    "packages/mcp-mock-server/src/server.ts",
+    "packages/mcp-mock-server/src/support/fixture-loader.ts",
+    "packages/mcp-mock-server/src/support/idempotency-store.ts",
+    "packages/mcp-mock-server/src/support/logger.ts",
+    "packages/mcp-mock-server/src/test-utils.ts",
+    "packages/shared-contracts/src/drafts.ts",
+    "packages/shared-contracts/src/errors/friendly.ts",
+    "packages/shared-contracts/src/errors/index.ts",
+    "packages/shared-contracts/src/http.ts",
+    "packages/shared-contracts/src/index.ts",
+    "packages/shared-contracts/src/intents.ts",
+    "packages/shared-contracts/src/mcp/_common.ts",
+    "packages/shared-contracts/src/mcp/createPurchaseOrder.ts",
+    "packages/shared-contracts/src/mcp/getStoreReportConfig.ts",
+    "packages/shared-contracts/src/mcp/index.ts",
+    "packages/shared-contracts/src/mcp/queryCategorySalesRatio.ts",
+    "packages/shared-contracts/src/mcp/queryInventoryOverview.ts",
+    "packages/shared-contracts/src/mcp/queryProductSalesRank.ts",
+    "packages/shared-contracts/src/mcp/queryReplenishmentBaseData.ts",
+    "packages/shared-contracts/src/mcp/queryStoreSalesSummary.ts",
+    "packages/shared-contracts/src/runlog.ts",
+    "packages/shared-contracts/src/skills.ts",
+    "packages/shared-contracts/src/strategies.ts"
+  ],
+  "docs": [
+    "docs/prompt/01-infra-monorepo-env.prompt.md",
+    "docs/prompt/02-infra-docker-compose.prompt.md",
+    "docs/prompt/03-infra-mysql-ddl.prompt.md",
+    "docs/prompt/04-contracts-domain-errors.prompt.md",
+    "docs/prompt/05-contracts-mcp-io-mock.prompt.md",
+    "docs/prompt/06-mastra-instance-tracing.prompt.md",
+    "docs/prompt/07-mastra-mysql-storage.prompt.md",
+    "docs/prompt/08-mastra-mcpclient-whitelist.prompt.md",
+    "docs/prompt/09-bridge-auth-session.prompt.md",
+    "docs/prompt/10-bridge-sse-output-guard.prompt.md",
+    "docs/prompt/11-safety-strategy-validator.prompt.md",
+    "docs/prompt/12-skill-business-reports.prompt.md",
+    "docs/prompt/13-safety-draft-manager.prompt.md",
+    "docs/prompt/14-skill-replenishment-forecast.prompt.md",
+    "docs/prompt/15-skill-replenishment-adjustment.prompt.md",
+    "docs/prompt/16-safety-confirm-manager-hitl.prompt.md",
+    "docs/prompt/17-skill-purchase-order-create-hitl.prompt.md",
+    "docs/prompt/18-test-unit-integration.prompt.md",
+    "docs/prompt/19-test-e2e-20-cases.prompt.md",
+    "docs/prompt/20-ops-deploy-health-graceful.prompt.md",
+    "docs/prompt/21-ops-grayscale-rollback-v2.prompt.md",
+    "docs/prompt/README.md",
+    "docs/prompt/_review-all-21-cards.prompt.md",
+    "docs/tanks/01-infra-monorepo-env.md",
+    "docs/tanks/02-infra-docker-compose.md",
+    "docs/tanks/03-infra-mysql-ddl.md",
+    "docs/tanks/04-contracts-domain-errors.md",
+    "docs/tanks/05-contracts-mcp-io-mock.md",
+    "docs/tanks/06-mastra-instance-tracing.md",
+    "docs/tanks/07-mastra-mysql-storage.md",
+    "docs/tanks/08-mastra-mcpclient-whitelist.md",
+    "docs/tanks/09-bridge-auth-session.md",
+    "docs/tanks/10-bridge-sse-output-guard.md",
+    "docs/tanks/11-safety-strategy-validator.md",
+    "docs/tanks/12-skill-business-reports.md",
+    "docs/tanks/13-safety-draft-manager.md",
+    "docs/tanks/14-skill-replenishment-forecast.md",
+    "docs/tanks/15-skill-replenishment-adjustment.md",
+    "docs/tanks/16-safety-confirm-manager-hitl.md",
+    "docs/tanks/17-skill-purchase-order-create-hitl.md",
+    "docs/tanks/18-test-unit-integration.md",
+    "docs/tanks/19-test-e2e-20-cases.md",
+    "docs/tanks/20-ops-deploy-health-graceful.md",
+    "docs/tanks/21-ops-grayscale-rollback-v2.md",
+    "docs/tanks/README.md",
+    "docs/任务卡/A-基础设施.md",
+    "docs/任务卡/B-契约.md",
+    "docs/任务卡/C-桥接层.md",
+    "docs/任务卡/D-Mastra.md",
+    "docs/任务卡/E-Skill.md",
+    "docs/任务卡/F-业务安全层.md",
+    "docs/任务卡/G-MCP-Mock.md",
+    "docs/任务卡/H-测试.md",
+    "docs/任务卡/I-运维.md",
+    "docs/任务卡/README.md",
+    "docs/任务卡/执行切片.md",
+    "docs/任务卡/技术研究报告.md",
+    "docs/门店助手Agent_V1_产品PRD.md",
+    "docs/门店助手Agent_V1_开发设计指南.md",
+    "docs/门店助手Agent_V1_本体模型文档.md",
+    "docs/门店助手Agent_V1_运维手册.md"
+  ],
+  "migrations": [
+    "migrations/001-init-skill-and-strategy.sql",
+    "migrations/002-init-replenishment.sql",
+    "migrations/003-init-agent-runlog.sql",
+    "migrations/004-init-api-key.sql",
+    "migrations/005-init-strategy-invalidation.sql",
+    "migrations/006-init-agent-session.sql",
+    "migrations/007-seed-default-platform-strategy.sql",
+    "migrations/008-init-mastra-workflow-snapshot.sql",
+    "migrations/009-init-mastra-workflow-event.sql",
+    "migrations/010-init-mastra-workflow-suspend.sql",
+    "migrations/011-extend-replenishment-adjustment-log.sql",
+    "migrations/011-seed-agent-skill-def.sql"
+  ],
+  "tables": [
+    {
+      "table": "agent_skill_def",
+      "file": "migrations/001-init-skill-and-strategy.sql",
+      "line": 8
+    },
+    {
+      "table": "agent_merchant_strategy",
+      "file": "migrations/001-init-skill-and-strategy.sql",
+      "line": 26
+    },
+    {
+      "table": "agent_store_strategy",
+      "file": "migrations/001-init-skill-and-strategy.sql",
+      "line": 40
+    },
+    {
+      "table": "replenishment_draft",
+      "file": "migrations/002-init-replenishment.sql",
+      "line": 9
+    },
+    {
+      "table": "replenishment_adjustment_log",
+      "file": "migrations/002-init-replenishment.sql",
+      "line": 37
+    },
+    {
+      "table": "agent_run_log",
+      "file": "migrations/003-init-agent-runlog.sql",
+      "line": 8
+    },
+    {
+      "table": "agent_skill_run_log",
+      "file": "migrations/003-init-agent-runlog.sql",
+      "line": 30
+    },
+    {
+      "table": "agent_api_key",
+      "file": "migrations/004-init-api-key.sql",
+      "line": 6
+    },
+    {
+      "table": "strategy_invalidation",
+      "file": "migrations/005-init-strategy-invalidation.sql",
+      "line": 6
+    },
+    {
+      "table": "agent_session",
+      "file": "migrations/006-init-agent-session.sql",
+      "line": 8
+    },
+    {
+      "table": "mastra_workflow_snapshot",
+      "file": "migrations/008-init-mastra-workflow-snapshot.sql",
+      "line": 7
+    },
+    {
+      "table": "mastra_workflow_event",
+      "file": "migrations/009-init-mastra-workflow-event.sql",
+      "line": 7
+    },
+    {
+      "table": "mastra_workflow_suspend",
+      "file": "migrations/010-init-mastra-workflow-suspend.sql",
+      "line": 7
+    }
+  ],
+  "agentEnvSchemaKeysOnly_noValues": [
+    "AGENT_API_KEY_HASH_SALT",
+    "AGENT_API_KEY_PREFIX",
+    "DATABASE_URL",
+    "DB_POOL_MAX",
+    "DB_QUEUE_LIMIT",
+    "ERP_MCP_SERVER_URL",
+    "GRAY_MERCHANT_WHITELIST",
+    "MAX_OUTPUT_TOKENS",
+    "MAX_TOOL_CALLS_PER_REQUEST",
+    "MCP_PROTOCOL_VERSION",
+    "MCP_TENANT_SHARED_SECRET",
+    "MODEL_API_KEY",
+    "MODEL_BASE_URL",
+    "MODEL_NAME",
+    "MODEL_PROVIDER",
+    "MODEL_TIMEOUT_MS",
+    "NODE_ENV",
+    "OTEL_EXPORTER_OTLP_ENDPOINT",
+    "PORT",
+    "RETENTION_DAYS_RUN_LOG",
+    "SUSPEND_TTL_MINUTES",
+    "TOOL_CALL_TIMEOUT_MS",
+    "USER_MESSAGE_MAX_CHARS"
+  ],
+  "mcpMockEnvSchemaKeysOnly_noValues": [
+    "MCP_ALLOWED_HOSTS",
+    "MCP_CORS_ORIGIN",
+    "MCP_PROTOCOL_VERSION",
+    "MCP_TENANT_SHARED_SECRET",
+    "MCP_TEST_EXTRA_TOOL_NAME",
+    "MCP_TEST_SCHEMA_MISSING_SIDE",
+    "MCP_TOOL_TIMEOUT_MS",
+    "NODE_ENV",
+    "PORT"
+  ],
+  "workflowInventory": [
+    {
+      "file": "packages/agent-service/src/mastra/workflows/business-daily-report.ts",
+      "workflowIds": [
+        "business_daily_report"
+      ],
+      "stepIds": [
+        "generate-daily-report"
+      ]
+    },
+    {
+      "file": "packages/agent-service/src/mastra/workflows/business-monthly-report.ts",
+      "workflowIds": [
+        "business_monthly_report"
+      ],
+      "stepIds": [
+        "prepare-monthly-input",
+        "query-sales-summary-monthly",
+        "query-category-ratio-monthly",
+        "query-product-rank-monthly",
+        "query-inventory-overview-monthly",
+        "compose-monthly-report"
+      ]
+    },
+    {
+      "file": "packages/agent-service/src/mastra/workflows/purchase-order-create.ts",
+      "workflowIds": [
+        "purchase_order_create"
+      ],
+      "stepIds": [
+        "preview-purchase-order",
+        "ask-confirm",
+        "create-purchase-order"
+      ]
+    },
+    {
+      "file": "packages/agent-service/src/mastra/workflows/replenishment-adjustment.ts",
+      "workflowIds": [
+        "replenishment_adjustment"
+      ],
+      "stepIds": [
+        "load-active-draft",
+        "extract-instruction",
+        "apply-instruction",
+        "persist-adjustment"
+      ]
+    },
+    {
+      "file": "packages/agent-service/src/mastra/workflows/replenishment-forecast.ts",
+      "workflowIds": [
+        "replenishment_forecast"
+      ],
+      "stepIds": [
+        "compute-suggest-qty",
+        "persist-draft"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+source,relation_type,target,description,evidence,confidence
+skill.business_daily_report,implementsWorkflow,workflow.business_daily_report,Skill business_daily_report 对应 workflow business_daily_report,migrations/011-seed-agent-skill-def.sql:L31-L38,0.92
+skill.business_monthly_report,implementsWorkflow,workflow.business_monthly_report,Skill business_monthly_report 对应 workflow business_monthly_report,migrations/011-seed-agent-skill-def.sql:L40-L46,0.92
+skill.replenishment_forecast,implementsWorkflow,workflow.replenishment_forecast,Skill replenishment_forecast 对应 workflow replenishment_forecast,migrations/011-seed-agent-skill-def.sql:L48-L53,0.92
+skill.replenishment_adjustment,implementsWorkflow,workflow.replenishment_adjustment,Skill replenishment_adjustment 对应 workflow replenishment_adjustment,migrations/011-seed-agent-skill-def.sql:L55-L60,0.92
+skill.purchase_order_create,implementsWorkflow,workflow.purchase_order_create,Skill purchase_order_create 对应 workflow purchase_order_create,migrations/011-seed-agent-skill-def.sql:L62-L69,0.92
+project.storepilot-ai,contains,component.storepilot_ai,根项目包含 workspace 与工具链。,README.md:L5-L27,0.92
+project.storepilot-ai,contains,component.storepilot.agent_service,主服务包。,README.md:L9-L14,0.92
+project.storepilot-ai,contains,component.storepilot.shared_contracts,共享契约包。,README.md:L9-L14,0.92
+project.storepilot-ai,contains,component.storepilot.mcp_mock_server,MCP mock 包。,README.md:L9-L14,0.92
+component.storepilot.agent_service,dependsOn,component.storepilot.shared_contracts,主服务依赖共享契约。,packages/agent-service/package.json:L15-L37,0.92
+component.storepilot.agent_service,exposes,api.chat.completions,提供 OpenAI-compatible Chat Completions SSE 桥。,packages/agent-service/src/api/chat-completions.ts:L243-L453,0.92
+component.storepilot.agent_service,exposes,api.health,提供 5 个健康检查路由。,packages/agent-service/src/api/health.ts:L1-L18,0.92
+component.storepilot.agent_service,calls,tool.*,通过 MCPClient 调用 7 个 ERP MCP 工具。,packages/agent-service/src/mastra/mcp/client.ts:L36-L55,0.92
+component.storepilot.mcp_mock_server,registers,tool.*,mock-server 注册 7 个工具并支持 fixtures。,packages/mcp-mock-server/src/mcp-server.ts:L85-L190,0.92
+domain.Merchant,owns,domain.Store,商家拥有多个门店。,docs/门店助手Agent_V1_本体模型文档.md:L131-L153,0.92
+domain.Store,has,domain.InventorySnapshot,门店拥有 SKU 库存快照。,docs/门店助手Agent_V1_本体模型文档.md:L131-L153,0.92
+domain.Store,has,domain.SalesSummary,门店拥有经营销售汇总。,docs/门店助手Agent_V1_本体模型文档.md:L131-L153,0.92
+domain.Category,contains,domain.Sku,品类包含 SKU。,docs/门店助手Agent_V1_本体模型文档.md:L131-L153,0.92
+domain.AgentSession,creates,domain.ReplenishmentDraft,会话创建补货草稿。,docs/门店助手Agent_V1_本体模型文档.md:L131-L153; migrations/002-init-replenishment.sql:L8-L33,0.92
+domain.ReplenishmentDraft,contains,domain.DraftItem,草稿包含补货明细。,packages/shared-contracts/src/drafts.ts:L20-L46,0.92
+domain.ReplenishmentDraft,adjustedBy,domain.AdjustmentInstruction,草稿可被用户调整指令修改。,migrations/002-init-replenishment.sql:L35-L54; migrations/011-extend-replenishment-adjustment-log.sql:L14-L22,0.92
+domain.ReplenishmentDraft,submittedAs,domain.PurchaseOrder,确认后以 createPurchaseOrder 写入 ERP 采购单。,packages/agent-service/src/mastra/workflows/purchase-order-create.ts:L244-L303,0.92
+skill.business_daily_report,requiresTool,tool.getStoreReportConfig,business_daily_report 需要 MCP 工具 getStoreReportConfig,migrations/011-seed-agent-skill-def.sql:L31-L38,0.92
+skill.business_daily_report,requiresTool,tool.queryStoreSalesSummary,business_daily_report 需要 MCP 工具 queryStoreSalesSummary,migrations/011-seed-agent-skill-def.sql:L31-L38,0.92
+skill.business_daily_report,requiresTool,tool.queryCategorySalesRatio,business_daily_report 需要 MCP 工具 queryCategorySalesRatio,migrations/011-seed-agent-skill-def.sql:L31-L38,0.92
+skill.business_daily_report,requiresTool,tool.queryProductSalesRank,business_daily_report 需要 MCP 工具 queryProductSalesRank,migrations/011-seed-agent-skill-def.sql:L31-L38,0.92
+skill.business_daily_report,requiresTool,tool.queryInventoryOverview,business_daily_report 需要 MCP 工具 queryInventoryOverview,migrations/011-seed-agent-skill-def.sql:L31-L38,0.92
+skill.business_monthly_report,requiresTool,tool.queryStoreSalesSummary,business_monthly_report 需要 MCP 工具 queryStoreSalesSummary,migrations/011-seed-agent-skill-def.sql:L40-L46,0.92
+skill.business_monthly_report,requiresTool,tool.queryCategorySalesRatio,business_monthly_report 需要 MCP 工具 queryCategorySalesRatio,migrations/011-seed-agent-skill-def.sql:L40-L46,0.92
+skill.business_monthly_report,requiresTool,tool.queryProductSalesRank,business_monthly_report 需要 MCP 工具 queryProductSalesRank,migrations/011-seed-agent-skill-def.sql:L40-L46,0.92
+skill.business_monthly_report,requiresTool,tool.queryInventoryOverview,business_monthly_report 需要 MCP 工具 queryInventoryOverview,migrations/011-seed-agent-skill-def.sql:L40-L46,0.92
+skill.replenishment_forecast,requiresTool,tool.queryReplenishmentBaseData,replenishment_forecast 需要 MCP 工具 queryReplenishmentBaseData,migrations/011-seed-agent-skill-def.sql:L48-L53,0.92
+skill.purchase_order_create,requiresTool,tool.createPurchaseOrder,purchase_order_create 需要 MCP 工具 createPurchaseOrder,migrations/011-seed-agent-skill-def.sql:L62-L69,0.92
+workflow.replenishment_forecast,writes,table.replenishment_draft,补货预测计算并持久化草稿。,packages/agent-service/src/mastra/workflows/replenishment-forecast.ts:L320-L417,0.92
+workflow.replenishment_adjustment,writes,table.replenishment_adjustment_log,每次调整写审计日志。,packages/agent-service/src/mastra/workflows/replenishment-adjustment.ts:L482-L544,0.92
+workflow.purchase_order_create,calls,tool.createPurchaseOrder,确认后调用 ERP 创建采购单。,packages/agent-service/src/mastra/workflows/purchase-order-create.ts:L244-L303,0.92
+workflow.purchase_order_create,updates,table.replenishment_draft,markSubmitted 写入 submitted_po_no。,packages/agent-service/src/mastra/workflows/purchase-order-create.ts:L283-L296,0.92
+table.agent_session,references,table.replenishment_draft,active_draft_id 保存挂起/活跃草稿。,migrations/006-init-agent-session.sql:L16-L20,0.92
+table.agent_session,coordinates,table.mastra_workflow_suspend,active_run_id/step/expires/lock 与 suspend payload 协同。,migrations/006-init-agent-session.sql:L16-L20; migrations/010-init-mastra-workflow-suspend.sql:L7-L17,0.92

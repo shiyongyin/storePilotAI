@@ -1,0 +1,96 @@
+id,type,name,description,evidence,confidence
+project.storepilot-ai,Project,门店助手 Agent V1 / storepilot-ai,面向多商家多门店经营分析、补货建议、采购闭环的 TypeScript monorepo。,package.json:L1-L31; docs/门店助手Agent_V1_本体模型文档.md:L50-L82,0.95
+component.storepilot_ai,SystemComponent,storepilot-ai,pnpm workspace；scripts 覆盖 build/lint/test/migrate/dev,package.json:L1-L31,0.95
+component.storepilot.agent_service,SystemComponent,@storepilot/agent-service,Hono + Mastra + MySQL + MCP + SSE + 安全层,packages/agent-service/package.json:L1-L37,0.95
+component.storepilot.shared_contracts,SystemComponent,@storepilot/shared-contracts,Intent/Draft/Strategy/Skill/Error/MCP Zod 契约,packages/shared-contracts/package.json:L1-L30,0.95
+component.storepilot.mcp_mock_server,SystemComponent,@storepilot/mcp-mock-server,注册 7 个 MCP 工具；仅 dev/CI，生产禁用,packages/mcp-mock-server/src/mcp-server.ts:L1-L11,0.95
+component.tools.migrate_runner,SystemComponent,tools/migrate-runner,执行 migrations/*.sql,package.json:L21-L22,0.95
+component.tools.api_key_issuer,SystemComponent,tools/api-key-issuer,写入 agent_api_key，支持 sk-agent-*,README.md:L15-L18,0.95
+component.tools.seed_strategy,SystemComponent,tools/seed-strategy,维护商家/门店策略 JSON,README.md:L15-L18,0.95
+component.deploy,SystemComponent,deploy,生产部署、健康检查、灰度/回滚相关文件,deploy/,0.95
+component.docs,SystemComponent,docs,PRD、设计指南、原始本体模型、21 切片任务卡,README.md:L19,0.95
+intent.BUSINESS_DAILY_REPORT,Intent,BUSINESS_DAILY_REPORT,经营日报,packages/shared-contracts/src/intents.ts:L8-L20,0.95
+intent.BUSINESS_MONTHLY_REPORT,Intent,BUSINESS_MONTHLY_REPORT,经营月报,packages/shared-contracts/src/intents.ts:L8-L20,0.95
+intent.REPLENISHMENT_PLAN,Intent,REPLENISHMENT_PLAN,补货计划/预测,packages/shared-contracts/src/intents.ts:L8-L20,0.95
+intent.ADJUST_REPLENISHMENT_DRAFT,Intent,ADJUST_REPLENISHMENT_DRAFT,调整补货草稿,packages/shared-contracts/src/intents.ts:L8-L20,0.95
+intent.CONFIRM_CREATE_PURCHASE_ORDER,Intent,CONFIRM_CREATE_PURCHASE_ORDER,确认创建采购单,packages/shared-contracts/src/intents.ts:L8-L20,0.95
+intent.CANCEL_REPLENISHMENT_DRAFT,Intent,CANCEL_REPLENISHMENT_DRAFT,取消补货草稿/挂起采购,packages/shared-contracts/src/intents.ts:L8-L20,0.95
+intent.COLLECT_REQUIREMENT,Intent,COLLECT_REQUIREMENT,需求收集,packages/shared-contracts/src/intents.ts:L8-L20,0.95
+intent.GENERAL_QA,Intent,GENERAL_QA,通用问答,packages/shared-contracts/src/intents.ts:L8-L20,0.95
+intent.EXPLAIN_METRIC,Intent,EXPLAIN_METRIC,指标解释,packages/shared-contracts/src/intents.ts:L8-L20,0.95
+intent.MULTI_INTENT,Intent,MULTI_INTENT,多意图,packages/shared-contracts/src/intents.ts:L8-L20,0.95
+intent.UNKNOWN,Intent,UNKNOWN,低置信度兜底,packages/shared-contracts/src/intents.ts:L8-L20,0.95
+skill.business_daily_report,Skill,business_daily_report,"风险 LOW，状态 enabled；意图：BUSINESS_DAILY_REPORT, EXPLAIN_METRIC；工具：getStoreReportConfig, queryStoreSalesSummary, queryCategorySalesRatio, queryProductSalesRank, queryInventoryOverview",migrations/011-seed-agent-skill-def.sql:L31-L38,0.95
+skill.business_monthly_report,Skill,business_monthly_report,"风险 LOW，状态 enabled；意图：BUSINESS_MONTHLY_REPORT；工具：queryStoreSalesSummary, queryCategorySalesRatio, queryProductSalesRank, queryInventoryOverview",migrations/011-seed-agent-skill-def.sql:L40-L46,0.95
+skill.replenishment_forecast,Skill,replenishment_forecast,风险 MEDIUM，状态 enabled；意图：REPLENISHMENT_PLAN；工具：queryReplenishmentBaseData,migrations/011-seed-agent-skill-def.sql:L48-L53,0.95
+skill.replenishment_adjustment,Skill,replenishment_adjustment,风险 MEDIUM，状态 enabled；意图：ADJUST_REPLENISHMENT_DRAFT；工具：(无 MCP 工具；本地草稿调整),migrations/011-seed-agent-skill-def.sql:L55-L60,0.95
+skill.purchase_order_create,Skill,purchase_order_create,"风险 HIGH，状态 gray；意图：CONFIRM_CREATE_PURCHASE_ORDER, CANCEL_REPLENISHMENT_DRAFT；工具：createPurchaseOrder",migrations/011-seed-agent-skill-def.sql:L62-L69,0.95
+tool.getStoreReportConfig,MCPTool,getStoreReportConfig,门店报表配置；返回 currency/locale/cards/timezone,packages/shared-contracts/src/mcp/getStoreReportConfig.ts:L22-L39,0.95
+tool.queryStoreSalesSummary,MCPTool,queryStoreSalesSummary,销售额、订单数、客单价等经营汇总,packages/shared-contracts/src/mcp/queryStoreSalesSummary.ts:L17-L33,0.95
+tool.queryCategorySalesRatio,MCPTool,queryCategorySalesRatio,品类销售占比，ratio 范围 0..1,packages/shared-contracts/src/mcp/queryCategorySalesRatio.ts:L14-L23,0.95
+tool.queryProductSalesRank,MCPTool,queryProductSalesRank,商品排行，topN 1..500，products max 500,packages/shared-contracts/src/mcp/queryProductSalesRank.ts:L27-L33,0.95
+tool.queryInventoryOverview,MCPTool,queryInventoryOverview,库存概览、低库存/缺货/库存价值,packages/shared-contracts/src/mcp/queryInventoryOverview.ts:L9-L28,0.95
+tool.queryReplenishmentBaseData,MCPTool,queryReplenishmentBaseData,补货基础数据：SKU、库存、销量、在途、lead time、供应商,packages/shared-contracts/src/mcp/queryReplenishmentBaseData.ts:L7-L43,0.95
+tool.createPurchaseOrder,MCPTool,createPurchaseOrder,创建 ERP 采购单；source 固定 AI_REPLENISHMENT_AGENT，idempotencyKey 必须等于 sourceDraftId,packages/shared-contracts/src/mcp/createPurchaseOrder.ts:L1-L45,0.95
+table.agent_skill_def,DatabaseTable,agent_skill_def,Skill 元数据、风险、状态、意图、工具白名单,migrations/001-init-skill-and-strategy.sql:L7-L22,0.95
+table.agent_merchant_strategy,DatabaseTable,agent_merchant_strategy,平台默认/商家级策略 JSON,migrations/001-init-skill-and-strategy.sql:L24-L37,0.95
+table.agent_store_strategy,DatabaseTable,agent_store_strategy,门店级策略 JSON,migrations/001-init-skill-and-strategy.sql:L39-L52,0.95
+table.replenishment_draft,DatabaseTable,replenishment_draft,补货草稿、状态、items、过期、采购单号,migrations/002-init-replenishment.sql:L8-L33,0.95
+table.replenishment_adjustment_log,DatabaseTable,replenishment_adjustment_log,调整指令审计,migrations/002-init-replenishment.sql:L35-L54,0.95
+table.agent_run_log,DatabaseTable,agent_run_log,Agent 请求审计,migrations/003-init-agent-runlog.sql:L7-L27,0.95
+table.agent_skill_run_log,DatabaseTable,agent_skill_run_log,Skill 调用审计,migrations/003-init-agent-runlog.sql:L29-L45,0.95
+table.agent_api_key,DatabaseTable,agent_api_key,API Key 租户鉴权,migrations/004-init-api-key.sql:L6-L24,0.95
+table.strategy_invalidation,DatabaseTable,strategy_invalidation,策略缓存失效信号,migrations/005-init-strategy-invalidation.sql:L6-L17,0.95
+table.agent_session,DatabaseTable,agent_session,会话及 HITL 5 字段,migrations/006-init-agent-session.sql:L8-L29,0.95
+table.mastra_workflow_snapshot,DatabaseTable,mastra_workflow_snapshot,Mastra workflow 状态快照,migrations/008-init-mastra-workflow-snapshot.sql:L7-L16,0.95
+table.mastra_workflow_event,DatabaseTable,mastra_workflow_event,Mastra workflow 步骤事件,migrations/009-init-mastra-workflow-event.sql:L7-L18,0.95
+table.mastra_workflow_suspend,DatabaseTable,mastra_workflow_suspend,HITL suspend payload,migrations/010-init-mastra-workflow-suspend.sql:L7-L17,0.95
+workflow.business_daily_report,Workflow,business_daily_report,Mastra workflow，步骤：generate-daily-report,packages/agent-service/src/mastra/workflows/business-daily-report.ts,0.95
+workflow.business_monthly_report,Workflow,business_monthly_report,"Mastra workflow，步骤：prepare-monthly-input, query-sales-summary-monthly, query-category-ratio-monthly, query-product-rank-monthly, query-inventory-overview-monthly, compose-monthly-report",packages/agent-service/src/mastra/workflows/business-monthly-report.ts,0.95
+workflow.purchase_order_create,Workflow,purchase_order_create,"Mastra workflow，步骤：preview-purchase-order, ask-confirm, create-purchase-order",packages/agent-service/src/mastra/workflows/purchase-order-create.ts,0.95
+workflow.replenishment_adjustment,Workflow,replenishment_adjustment,"Mastra workflow，步骤：load-active-draft, extract-instruction, apply-instruction, persist-adjustment",packages/agent-service/src/mastra/workflows/replenishment-adjustment.ts,0.95
+workflow.replenishment_forecast,Workflow,replenishment_forecast,"Mastra workflow，步骤：compute-suggest-qty, persist-draft",packages/agent-service/src/mastra/workflows/replenishment-forecast.ts,0.95
+domain.Merchant,DomainConcept,商家,策略、Skill 启用、数据隔离、报表配置的一级边界。,docs/门店助手Agent_V1_本体模型文档.md:L161-L195,0.95
+domain.Store,DomainConcept,门店,商家下的经营单元；补货、日报、库存、销售以门店为主要执行范围。,docs/门店助手Agent_V1_本体模型文档.md:L198-L213,0.95
+domain.User,DomainConcept,用户,发起对话和确认采购单的操作者。,docs/门店助手Agent_V1_本体模型文档.md:L86-L129,0.95
+domain.Category,DomainConcept,品类,SKU 的分类维度，用于占比、策略和补货分组。,docs/门店助手Agent_V1_本体模型文档.md:L262-L329,0.95
+domain.Sku,DomainConcept,SKU,商品最小经营与补货对象。,docs/门店助手Agent_V1_本体模型文档.md:L262-L329,0.95
+domain.Supplier,DomainConcept,供应商,采购单和补货候选项的供货来源。,docs/门店助手Agent_V1_本体模型文档.md:L262-L329,0.95
+domain.SalesSummary,DomainConcept,销售汇总,经营日报/月报使用的销售额、订单数、客单价等。,docs/门店助手Agent_V1_本体模型文档.md:L332-L410,0.95
+domain.InventorySnapshot,DomainConcept,库存快照,SKU 当前库存、低库存、缺货、库存价值等。,packages/shared-contracts/src/mcp/queryInventoryOverview.ts:L9-L28,0.95
+domain.ReplenishmentDraft,DomainConcept,补货草稿,补货预测生成，可调整、确认、提交为采购单。,packages/shared-contracts/src/drafts.ts:L32-L46,0.95
+domain.DraftItem,DomainConcept,补货明细,补货草稿中的 SKU 建议数量和原因。,packages/shared-contracts/src/drafts.ts:L20-L28,0.95
+domain.AdjustmentInstruction,DomainConcept,调整指令,用户自然语言调整草稿后的结构化指令。,packages/shared-contracts/src/drafts.ts:L50-L74,0.95
+domain.PurchaseOrder,DomainConcept,采购单,确认后调用 ERP MCP 创建的采购单。,packages/shared-contracts/src/mcp/createPurchaseOrder.ts:L1-L45,0.95
+domain.Strategy,DomainConcept,策略,平台/商家/门店三级合并后的生效策略。,packages/shared-contracts/src/strategies.ts:L14-L33,0.95
+domain.AgentSession,DomainConcept,Agent 会话,承载 sessionId、租户上下文和 HITL 挂起状态。,migrations/006-init-agent-session.sql:L8-L29,0.95
+domain.ReportView,DomainConcept,报表视图,经营报表的卡片、洞察和 Markdown 输出。,docs/门店助手Agent_V1_本体模型文档.md:L117-L129,0.95
+api.health,HealthAPI,健康检查聚合,"GET /health, /health/db, /health/mcp, /health/model, /health/ready",packages/agent-service/src/api/health.ts:L1-L18,0.95
+api.health.liveness,HealthAPI,GET /health,liveness，不做 IO。,packages/agent-service/src/api/health.ts:L194-L201,0.95
+api.health.db,HealthAPI,GET /health/db,检查 SELECT 1 和表数量 >= 11。,packages/agent-service/src/api/health.ts:L112-L147,0.95
+api.health.mcp,HealthAPI,GET /health/mcp,MCP 工具白名单检查。,packages/agent-service/src/api/health.ts:L155-L239,0.95
+api.health.model,HealthAPI,GET /health/model,模型 ping。,packages/agent-service/src/api/health.ts:L253-L269,0.95
+api.health.ready,HealthAPI,GET /health/ready,readiness = db + mcp，不含 model。,packages/agent-service/src/api/health.ts:L281-L298,0.95
+api.chat.completions,HTTPAPI,POST /v1/chat/completions,OpenAI-compatible SSE 桥入口。,packages/agent-service/src/api/chat-completions.ts:L243-L453,0.95
+api.mcp_mock.health,HealthAPI,GET mcp-mock /health,返回 mock 状态、协议版本、fixtureProfile、toolCount。,packages/mcp-mock-server/src/app.ts:L128-L137,0.95
+rule.R-AI-001,BusinessRule,不能编造业务数据,销售额、库存、SKU、采购数量必须来自 MCP Tool 返回或已保存草稿。,docs/门店助手Agent_V1_本体模型文档.md:L37-L47,0.95
+rule.R-AI-002,BusinessRule,创建采购单必须确认,AI 不能绕过确认；采购单创建前必须展示结构化明细并获得明确确认。,docs/门店助手Agent_V1_本体模型文档.md:L41-L43,0.95
+rule.R-AI-003,BusinessRule,不能从 Markdown 反解析提单,采购单明细必须来自 ReplenishmentDraft.items / finalSuggestQty，不得从展示文本提取。,docs/门店助手Agent_V1_本体模型文档.md:L1137-L1150,0.95
+rule.R-SEC-001,BusinessRule,商家/门店硬隔离,查询、草稿、策略、采购单绑定 merchantId/storeId；DraftManager 所有 SQL 带租户条件。,docs/门店助手Agent_V1_本体模型文档.md:L1154-L1164; packages/agent-service/src/safety/draft-manager.ts:L15-L21,0.95
+rule.R-STR-001,BusinessRule,策略合并优先级,EffectiveStrategy 由 Store > Merchant > Platform 合并；合并失败降级并记录原因。,packages/agent-service/src/safety/strategy-engine.ts:L1-L17,0.95
+rule.R-STR-002,BusinessRule,禁止自动采购单,StrategySchema 中 allowAutoPurchaseOrder 固定 false。,packages/shared-contracts/src/strategies.ts:L14-L33,0.95
+rule.R-STR-003,BusinessRule,写操作必须用户确认,StrategySchema 中 requireUserConfirmForWrite 固定 true。,packages/shared-contracts/src/strategies.ts:L14-L33,0.95
+rule.R-SKILL-001,BusinessRule,SkillDef 与 Workflow 严格一致,启动期读取 agent_skill_def enabled/gray 行，与 5 个 workflow id 严格相等，否则启动失败。,packages/agent-service/src/mastra/agents/skill-registry.ts:L8-L23,0.95
+rule.R-SKILL-002,BusinessRule,灰度/禁用网关,disabled 或 gray 但 merchantId 不在 GRAY_MERCHANT_WHITELIST 时抛 SKILL_NOT_AVAILABLE。,packages/agent-service/src/mastra/agents/skill-registry.ts:L261-L328,0.95
+rule.R-MCP-001,BusinessRule,MCP 工具白名单严格相等,启动期 found.sort 与 7 工具 expected.sort 严格相等，并检查 input/output schema 非空。,packages/agent-service/src/mastra/mcp/client.ts:L36-L55; packages/agent-service/src/mastra/mcp/client.ts:L142-L187,0.95
+rule.R-HTTP-001,BusinessRule,Chat Completions 请求不允许工具调用字段,OpenAiRequestSchema 拒绝 tools/tool_choice/functions/function_call/response_format 等字段。,packages/shared-contracts/src/http.ts:L11-L27,0.95
+rule.R-OUT-001,BusinessRule,禁止工具调用泄漏给前端,OutputGuard 扫描 tool_calls/function_call/tool_call_id 等禁用 token，命中记录 P0 hash。,packages/agent-service/src/bridge/output-guard.ts:L43-L86,0.95
+rule.R-NUM-001,BusinessRule,数字一致性校验,输出数字必须来自允许集/派生值；不用 LLM judge。,packages/agent-service/src/safety/output-validator.ts:L1-L23; packages/agent-service/src/safety/output-validator.ts:L63-L147,0.95
+rule.R-DRAFT-001,BusinessRule,草稿 7 状态机,DRAFT→WAIT_CONFIRM/CANCELLED/EXPIRED；WAIT_CONFIRM→CONFIRMED/CANCELLED/EXPIRED；CONFIRMED→SUBMITTED/FAILED/CANCELLED；终态不可再流转。,packages/agent-service/src/safety/draft-manager.ts:L44-L88,0.95
+rule.R-DRAFT-002,BusinessRule,草稿 30 分钟过期与 5 分钟兜底,replenishment_draft expires_at 默认 30 分钟，idx_draft_tenant_recent 支持 session 漂移找最近草稿。,migrations/002-init-replenishment.sql:L8-L33,0.95
+rule.R-HITL-001,BusinessRule,HITL resume 互斥锁,resume_locked_at 10 秒租约，防止并发确认重复提交。,packages/agent-service/src/safety/confirm-manager.ts:L106-L120,0.95
+rule.R-PO-001,BusinessRule,采购单幂等键,createPurchaseOrder 输入要求 idempotencyKey === sourceDraftId；source 固定 AI_REPLENISHMENT_AGENT。,packages/shared-contracts/src/mcp/createPurchaseOrder.ts:L1-L45,0.95
+rule.R-OPS-001,BusinessRule,健康检查语义,/health 是 liveness 不做 IO；/health/ready 聚合 db+mcp，不包含 model。,packages/agent-service/src/api/health.ts:L1-L18; packages/agent-service/src/api/health.ts:L281-L298,0.95
+rule.R-OPS-002,BusinessRule,优雅停机顺序,停止接收新请求，等待 SSE，abort inflight，释放 MCP，停止 cron，关闭 DB pool。,packages/agent-service/src/server.ts:L325-L395,0.95
+rule.R-ENV-001,BusinessRule,生产 CORS/数字校验保护,生产 CORS 不能 *；生产环境不能关闭数字一致性校验。,packages/agent-service/src/config/env.ts:L35-L63,0.95
+rule.R-MOCK-001,BusinessRule,Mock 服务生产禁用,mcp-mock-server 在 NODE_ENV=production 时 process.exit(1)。,packages/mcp-mock-server/src/config/env.ts:L69-L72,0.95

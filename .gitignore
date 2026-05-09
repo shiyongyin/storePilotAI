@@ -22,7 +22,10 @@ coverage/
 .env.*.dev.local
 
 # 文档与 AI 工作记录
-/docs/
+/docs/*
+!/docs/ai-ontology/
+!/docs/ai-ontology/**
+!/docs/门店助手Agent_V1_本体模型文档.md
 /completion_checklist.md
 /findings.md
 /intent-e2e-audit.md

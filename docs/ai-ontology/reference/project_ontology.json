@@ -1,0 +1,1774 @@
+{
+  "generatedAt": "2026-05-08",
+  "method": "docs + code + SQL migrations + contract schemas; evidence paths use project-relative path:line.",
+  "coverage": {
+    "sourceTsFiles": 153,
+    "sourceTsNonTestFiles": 90,
+    "testFiles": 93,
+    "docsMarkdownFiles": 61,
+    "migrationSqlFiles": 12,
+    "tablesDetected": 13
+  },
+  "entities": [
+    {
+      "id": "project.storepilot-ai",
+      "type": "Project",
+      "name": "门店助手 Agent V1 / storepilot-ai",
+      "description": "面向多商家多门店经营分析、补货建议、采购闭环的 TypeScript monorepo。",
+      "evidence": [
+        "package.json:L1-L31",
+        "docs/门店助手Agent_V1_本体模型文档.md:L50-L82"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "component.storepilot_ai",
+      "type": "SystemComponent",
+      "name": "storepilot-ai",
+      "description": "pnpm workspace；scripts 覆盖 build/lint/test/migrate/dev",
+      "evidence": [
+        "package.json:L1-L31"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "component.storepilot.agent_service",
+      "type": "SystemComponent",
+      "name": "@storepilot/agent-service",
+      "description": "Hono + Mastra + MySQL + MCP + SSE + 安全层",
+      "evidence": [
+        "packages/agent-service/package.json:L1-L37"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "component.storepilot.shared_contracts",
+      "type": "SystemComponent",
+      "name": "@storepilot/shared-contracts",
+      "description": "Intent/Draft/Strategy/Skill/Error/MCP Zod 契约",
+      "evidence": [
+        "packages/shared-contracts/package.json:L1-L30"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "component.storepilot.mcp_mock_server",
+      "type": "SystemComponent",
+      "name": "@storepilot/mcp-mock-server",
+      "description": "注册 7 个 MCP 工具；仅 dev/CI，生产禁用",
+      "evidence": [
+        "packages/mcp-mock-server/src/mcp-server.ts:L1-L11"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "component.tools.migrate_runner",
+      "type": "SystemComponent",
+      "name": "tools/migrate-runner",
+      "description": "执行 migrations/*.sql",
+      "evidence": [
+        "package.json:L21-L22"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "component.tools.api_key_issuer",
+      "type": "SystemComponent",
+      "name": "tools/api-key-issuer",
+      "description": "写入 agent_api_key，支持 sk-agent-*",
+      "evidence": [
+        "README.md:L15-L18"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "component.tools.seed_strategy",
+      "type": "SystemComponent",
+      "name": "tools/seed-strategy",
+      "description": "维护商家/门店策略 JSON",
+      "evidence": [
+        "README.md:L15-L18"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "component.deploy",
+      "type": "SystemComponent",
+      "name": "deploy",
+      "description": "生产部署、健康检查、灰度/回滚相关文件",
+      "evidence": [
+        "deploy/"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "component.docs",
+      "type": "SystemComponent",
+      "name": "docs",
+      "description": "PRD、设计指南、原始本体模型、21 切片任务卡",
+      "evidence": [
+        "README.md:L19"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "intent.BUSINESS_DAILY_REPORT",
+      "type": "Intent",
+      "name": "BUSINESS_DAILY_REPORT",
+      "description": "经营日报",
+      "evidence": [
+        "packages/shared-contracts/src/intents.ts:L8-L20"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "intent.BUSINESS_MONTHLY_REPORT",
+      "type": "Intent",
+      "name": "BUSINESS_MONTHLY_REPORT",
+      "description": "经营月报",
+      "evidence": [
+        "packages/shared-contracts/src/intents.ts:L8-L20"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "intent.REPLENISHMENT_PLAN",
+      "type": "Intent",
+      "name": "REPLENISHMENT_PLAN",
+      "description": "补货计划/预测",
+      "evidence": [
+        "packages/shared-contracts/src/intents.ts:L8-L20"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "intent.ADJUST_REPLENISHMENT_DRAFT",
+      "type": "Intent",
+      "name": "ADJUST_REPLENISHMENT_DRAFT",
+      "description": "调整补货草稿",
+      "evidence": [
+        "packages/shared-contracts/src/intents.ts:L8-L20"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "intent.CONFIRM_CREATE_PURCHASE_ORDER",
+      "type": "Intent",
+      "name": "CONFIRM_CREATE_PURCHASE_ORDER",
+      "description": "确认创建采购单",
+      "evidence": [
+        "packages/shared-contracts/src/intents.ts:L8-L20"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "intent.CANCEL_REPLENISHMENT_DRAFT",
+      "type": "Intent",
+      "name": "CANCEL_REPLENISHMENT_DRAFT",
+      "description": "取消补货草稿/挂起采购",
+      "evidence": [
+        "packages/shared-contracts/src/intents.ts:L8-L20"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "intent.COLLECT_REQUIREMENT",
+      "type": "Intent",
+      "name": "COLLECT_REQUIREMENT",
+      "description": "需求收集",
+      "evidence": [
+        "packages/shared-contracts/src/intents.ts:L8-L20"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "intent.GENERAL_QA",
+      "type": "Intent",
+      "name": "GENERAL_QA",
+      "description": "通用问答",
+      "evidence": [
+        "packages/shared-contracts/src/intents.ts:L8-L20"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "intent.EXPLAIN_METRIC",
+      "type": "Intent",
+      "name": "EXPLAIN_METRIC",
+      "description": "指标解释",
+      "evidence": [
+        "packages/shared-contracts/src/intents.ts:L8-L20"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "intent.MULTI_INTENT",
+      "type": "Intent",
+      "name": "MULTI_INTENT",
+      "description": "多意图",
+      "evidence": [
+        "packages/shared-contracts/src/intents.ts:L8-L20"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "intent.UNKNOWN",
+      "type": "Intent",
+      "name": "UNKNOWN",
+      "description": "低置信度兜底",
+      "evidence": [
+        "packages/shared-contracts/src/intents.ts:L8-L20"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "skill.business_daily_report",
+      "type": "Skill",
+      "name": "business_daily_report",
+      "description": "风险 LOW，状态 enabled；意图：BUSINESS_DAILY_REPORT, EXPLAIN_METRIC；工具：getStoreReportConfig, queryStoreSalesSummary, queryCategorySalesRatio, queryProductSalesRank, queryInventoryOverview",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L31-L38"
+      ],
+      "properties": {
+        "risk": "LOW",
+        "status": "enabled",
+        "workflowId": "business_daily_report"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "skill.business_monthly_report",
+      "type": "Skill",
+      "name": "business_monthly_report",
+      "description": "风险 LOW，状态 enabled；意图：BUSINESS_MONTHLY_REPORT；工具：queryStoreSalesSummary, queryCategorySalesRatio, queryProductSalesRank, queryInventoryOverview",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L40-L46"
+      ],
+      "properties": {
+        "risk": "LOW",
+        "status": "enabled",
+        "workflowId": "business_monthly_report"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "skill.replenishment_forecast",
+      "type": "Skill",
+      "name": "replenishment_forecast",
+      "description": "风险 MEDIUM，状态 enabled；意图：REPLENISHMENT_PLAN；工具：queryReplenishmentBaseData",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L48-L53"
+      ],
+      "properties": {
+        "risk": "MEDIUM",
+        "status": "enabled",
+        "workflowId": "replenishment_forecast"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "skill.replenishment_adjustment",
+      "type": "Skill",
+      "name": "replenishment_adjustment",
+      "description": "风险 MEDIUM，状态 enabled；意图：ADJUST_REPLENISHMENT_DRAFT；工具：(无 MCP 工具；本地草稿调整)",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L55-L60"
+      ],
+      "properties": {
+        "risk": "MEDIUM",
+        "status": "enabled",
+        "workflowId": "replenishment_adjustment"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "skill.purchase_order_create",
+      "type": "Skill",
+      "name": "purchase_order_create",
+      "description": "风险 HIGH，状态 gray；意图：CONFIRM_CREATE_PURCHASE_ORDER, CANCEL_REPLENISHMENT_DRAFT；工具：createPurchaseOrder",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L62-L69"
+      ],
+      "properties": {
+        "risk": "HIGH",
+        "status": "gray",
+        "workflowId": "purchase_order_create"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "tool.getStoreReportConfig",
+      "type": "MCPTool",
+      "name": "getStoreReportConfig",
+      "description": "门店报表配置；返回 currency/locale/cards/timezone",
+      "evidence": [
+        "packages/shared-contracts/src/mcp/getStoreReportConfig.ts:L22-L39"
+      ],
+      "properties": {
+        "kind": "QUERY",
+        "risk": "LOW"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "tool.queryStoreSalesSummary",
+      "type": "MCPTool",
+      "name": "queryStoreSalesSummary",
+      "description": "销售额、订单数、客单价等经营汇总",
+      "evidence": [
+        "packages/shared-contracts/src/mcp/queryStoreSalesSummary.ts:L17-L33"
+      ],
+      "properties": {
+        "kind": "QUERY",
+        "risk": "LOW"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "tool.queryCategorySalesRatio",
+      "type": "MCPTool",
+      "name": "queryCategorySalesRatio",
+      "description": "品类销售占比，ratio 范围 0..1",
+      "evidence": [
+        "packages/shared-contracts/src/mcp/queryCategorySalesRatio.ts:L14-L23"
+      ],
+      "properties": {
+        "kind": "QUERY",
+        "risk": "LOW"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "tool.queryProductSalesRank",
+      "type": "MCPTool",
+      "name": "queryProductSalesRank",
+      "description": "商品排行，topN 1..500，products max 500",
+      "evidence": [
+        "packages/shared-contracts/src/mcp/queryProductSalesRank.ts:L27-L33"
+      ],
+      "properties": {
+        "kind": "QUERY",
+        "risk": "LOW"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "tool.queryInventoryOverview",
+      "type": "MCPTool",
+      "name": "queryInventoryOverview",
+      "description": "库存概览、低库存/缺货/库存价值",
+      "evidence": [
+        "packages/shared-contracts/src/mcp/queryInventoryOverview.ts:L9-L28"
+      ],
+      "properties": {
+        "kind": "QUERY",
+        "risk": "LOW"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "tool.queryReplenishmentBaseData",
+      "type": "MCPTool",
+      "name": "queryReplenishmentBaseData",
+      "description": "补货基础数据：SKU、库存、销量、在途、lead time、供应商",
+      "evidence": [
+        "packages/shared-contracts/src/mcp/queryReplenishmentBaseData.ts:L7-L43"
+      ],
+      "properties": {
+        "kind": "QUERY",
+        "risk": "LOW"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "tool.createPurchaseOrder",
+      "type": "MCPTool",
+      "name": "createPurchaseOrder",
+      "description": "创建 ERP 采购单；source 固定 AI_REPLENISHMENT_AGENT，idempotencyKey 必须等于 sourceDraftId",
+      "evidence": [
+        "packages/shared-contracts/src/mcp/createPurchaseOrder.ts:L1-L45"
+      ],
+      "properties": {
+        "kind": "WRITE",
+        "risk": "HIGH"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "table.agent_skill_def",
+      "type": "DatabaseTable",
+      "name": "agent_skill_def",
+      "description": "Skill 元数据、风险、状态、意图、工具白名单",
+      "evidence": [
+        "migrations/001-init-skill-and-strategy.sql:L7-L22"
+      ],
+      "properties": {
+        "relationHint": "agent_skill_def.skill_code 与 5 个 workflow id 一致"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "table.agent_merchant_strategy",
+      "type": "DatabaseTable",
+      "name": "agent_merchant_strategy",
+      "description": "平台默认/商家级策略 JSON",
+      "evidence": [
+        "migrations/001-init-skill-and-strategy.sql:L24-L37"
+      ],
+      "properties": {
+        "relationHint": "策略基础层 / Merchant 层"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "table.agent_store_strategy",
+      "type": "DatabaseTable",
+      "name": "agent_store_strategy",
+      "description": "门店级策略 JSON",
+      "evidence": [
+        "migrations/001-init-skill-and-strategy.sql:L39-L52"
+      ],
+      "properties": {
+        "relationHint": "Store 层，优先级最高"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "table.replenishment_draft",
+      "type": "DatabaseTable",
+      "name": "replenishment_draft",
+      "description": "补货草稿、状态、items、过期、采购单号",
+      "evidence": [
+        "migrations/002-init-replenishment.sql:L8-L33"
+      ],
+      "properties": {
+        "relationHint": "AgentSession 创建并提交为 PurchaseOrder"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "table.replenishment_adjustment_log",
+      "type": "DatabaseTable",
+      "name": "replenishment_adjustment_log",
+      "description": "调整指令审计",
+      "evidence": [
+        "migrations/002-init-replenishment.sql:L35-L54"
+      ],
+      "properties": {
+        "relationHint": "ReplenishmentDraft adjustedBy AdjustmentInstruction"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "table.agent_run_log",
+      "type": "DatabaseTable",
+      "name": "agent_run_log",
+      "description": "Agent 请求审计",
+      "evidence": [
+        "migrations/003-init-agent-runlog.sql:L7-L27"
+      ],
+      "properties": {
+        "relationHint": "trace/session/tenant/intention/status"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "table.agent_skill_run_log",
+      "type": "DatabaseTable",
+      "name": "agent_skill_run_log",
+      "description": "Skill 调用审计",
+      "evidence": [
+        "migrations/003-init-agent-runlog.sql:L29-L45"
+      ],
+      "properties": {
+        "relationHint": "trace/skill/input_summary/output_summary/status"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "table.agent_api_key",
+      "type": "DatabaseTable",
+      "name": "agent_api_key",
+      "description": "API Key 租户鉴权",
+      "evidence": [
+        "migrations/004-init-api-key.sql:L6-L24"
+      ],
+      "properties": {
+        "relationHint": "api_key_prefix → merchant/store/user"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "table.strategy_invalidation",
+      "type": "DatabaseTable",
+      "name": "strategy_invalidation",
+      "description": "策略缓存失效信号",
+      "evidence": [
+        "migrations/005-init-strategy-invalidation.sql:L6-L17"
+      ],
+      "properties": {
+        "relationHint": "StrategyEngine LRU 重新加载触发"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "table.agent_session",
+      "type": "DatabaseTable",
+      "name": "agent_session",
+      "description": "会话及 HITL 5 字段",
+      "evidence": [
+        "migrations/006-init-agent-session.sql:L8-L29"
+      ],
+      "properties": {
+        "relationHint": "session → active_draft/run/step/expires/lock"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "table.mastra_workflow_snapshot",
+      "type": "DatabaseTable",
+      "name": "mastra_workflow_snapshot",
+      "description": "Mastra workflow 状态快照",
+      "evidence": [
+        "migrations/008-init-mastra-workflow-snapshot.sql:L7-L16"
+      ],
+      "properties": {
+        "relationHint": "workflow_name + run_id"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "table.mastra_workflow_event",
+      "type": "DatabaseTable",
+      "name": "mastra_workflow_event",
+      "description": "Mastra workflow 步骤事件",
+      "evidence": [
+        "migrations/009-init-mastra-workflow-event.sql:L7-L18"
+      ],
+      "properties": {
+        "relationHint": "workflow/run/step/event_type/payload"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "table.mastra_workflow_suspend",
+      "type": "DatabaseTable",
+      "name": "mastra_workflow_suspend",
+      "description": "HITL suspend payload",
+      "evidence": [
+        "migrations/010-init-mastra-workflow-suspend.sql:L7-L17"
+      ],
+      "properties": {
+        "relationHint": "run_id + step_id，30 分钟过期"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "workflow.business_daily_report",
+      "type": "Workflow",
+      "name": "business_daily_report",
+      "description": "Mastra workflow，步骤：generate-daily-report",
+      "evidence": [
+        "packages/agent-service/src/mastra/workflows/business-daily-report.ts"
+      ],
+      "properties": {
+        "stepIds": [
+          "generate-daily-report"
+        ]
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "workflow.business_monthly_report",
+      "type": "Workflow",
+      "name": "business_monthly_report",
+      "description": "Mastra workflow，步骤：prepare-monthly-input, query-sales-summary-monthly, query-category-ratio-monthly, query-product-rank-monthly, query-inventory-overview-monthly, compose-monthly-report",
+      "evidence": [
+        "packages/agent-service/src/mastra/workflows/business-monthly-report.ts"
+      ],
+      "properties": {
+        "stepIds": [
+          "prepare-monthly-input",
+          "query-sales-summary-monthly",
+          "query-category-ratio-monthly",
+          "query-product-rank-monthly",
+          "query-inventory-overview-monthly",
+          "compose-monthly-report"
+        ]
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "workflow.purchase_order_create",
+      "type": "Workflow",
+      "name": "purchase_order_create",
+      "description": "Mastra workflow，步骤：preview-purchase-order, ask-confirm, create-purchase-order",
+      "evidence": [
+        "packages/agent-service/src/mastra/workflows/purchase-order-create.ts"
+      ],
+      "properties": {
+        "stepIds": [
+          "preview-purchase-order",
+          "ask-confirm",
+          "create-purchase-order"
+        ]
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "workflow.replenishment_adjustment",
+      "type": "Workflow",
+      "name": "replenishment_adjustment",
+      "description": "Mastra workflow，步骤：load-active-draft, extract-instruction, apply-instruction, persist-adjustment",
+      "evidence": [
+        "packages/agent-service/src/mastra/workflows/replenishment-adjustment.ts"
+      ],
+      "properties": {
+        "stepIds": [
+          "load-active-draft",
+          "extract-instruction",
+          "apply-instruction",
+          "persist-adjustment"
+        ]
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "workflow.replenishment_forecast",
+      "type": "Workflow",
+      "name": "replenishment_forecast",
+      "description": "Mastra workflow，步骤：compute-suggest-qty, persist-draft",
+      "evidence": [
+        "packages/agent-service/src/mastra/workflows/replenishment-forecast.ts"
+      ],
+      "properties": {
+        "stepIds": [
+          "compute-suggest-qty",
+          "persist-draft"
+        ]
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.Merchant",
+      "type": "DomainConcept",
+      "name": "商家",
+      "description": "策略、Skill 启用、数据隔离、报表配置的一级边界。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L161-L195"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.Store",
+      "type": "DomainConcept",
+      "name": "门店",
+      "description": "商家下的经营单元；补货、日报、库存、销售以门店为主要执行范围。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L198-L213"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.User",
+      "type": "DomainConcept",
+      "name": "用户",
+      "description": "发起对话和确认采购单的操作者。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L86-L129"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.Category",
+      "type": "DomainConcept",
+      "name": "品类",
+      "description": "SKU 的分类维度，用于占比、策略和补货分组。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L262-L329"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.Sku",
+      "type": "DomainConcept",
+      "name": "SKU",
+      "description": "商品最小经营与补货对象。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L262-L329"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.Supplier",
+      "type": "DomainConcept",
+      "name": "供应商",
+      "description": "采购单和补货候选项的供货来源。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L262-L329"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.SalesSummary",
+      "type": "DomainConcept",
+      "name": "销售汇总",
+      "description": "经营日报/月报使用的销售额、订单数、客单价等。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L332-L410"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.InventorySnapshot",
+      "type": "DomainConcept",
+      "name": "库存快照",
+      "description": "SKU 当前库存、低库存、缺货、库存价值等。",
+      "evidence": [
+        "packages/shared-contracts/src/mcp/queryInventoryOverview.ts:L9-L28"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.ReplenishmentDraft",
+      "type": "DomainConcept",
+      "name": "补货草稿",
+      "description": "补货预测生成，可调整、确认、提交为采购单。",
+      "evidence": [
+        "packages/shared-contracts/src/drafts.ts:L32-L46"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.DraftItem",
+      "type": "DomainConcept",
+      "name": "补货明细",
+      "description": "补货草稿中的 SKU 建议数量和原因。",
+      "evidence": [
+        "packages/shared-contracts/src/drafts.ts:L20-L28"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.AdjustmentInstruction",
+      "type": "DomainConcept",
+      "name": "调整指令",
+      "description": "用户自然语言调整草稿后的结构化指令。",
+      "evidence": [
+        "packages/shared-contracts/src/drafts.ts:L50-L74"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.PurchaseOrder",
+      "type": "DomainConcept",
+      "name": "采购单",
+      "description": "确认后调用 ERP MCP 创建的采购单。",
+      "evidence": [
+        "packages/shared-contracts/src/mcp/createPurchaseOrder.ts:L1-L45"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.Strategy",
+      "type": "DomainConcept",
+      "name": "策略",
+      "description": "平台/商家/门店三级合并后的生效策略。",
+      "evidence": [
+        "packages/shared-contracts/src/strategies.ts:L14-L33"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.AgentSession",
+      "type": "DomainConcept",
+      "name": "Agent 会话",
+      "description": "承载 sessionId、租户上下文和 HITL 挂起状态。",
+      "evidence": [
+        "migrations/006-init-agent-session.sql:L8-L29"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "domain.ReportView",
+      "type": "DomainConcept",
+      "name": "报表视图",
+      "description": "经营报表的卡片、洞察和 Markdown 输出。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L117-L129"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "api.health",
+      "type": "HealthAPI",
+      "name": "健康检查聚合",
+      "description": "GET /health, /health/db, /health/mcp, /health/model, /health/ready",
+      "evidence": [
+        "packages/agent-service/src/api/health.ts:L1-L18"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "api.health.liveness",
+      "type": "HealthAPI",
+      "name": "GET /health",
+      "description": "liveness，不做 IO。",
+      "evidence": [
+        "packages/agent-service/src/api/health.ts:L194-L201"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "api.health.db",
+      "type": "HealthAPI",
+      "name": "GET /health/db",
+      "description": "检查 SELECT 1 和表数量 >= 11。",
+      "evidence": [
+        "packages/agent-service/src/api/health.ts:L112-L147"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "api.health.mcp",
+      "type": "HealthAPI",
+      "name": "GET /health/mcp",
+      "description": "MCP 工具白名单检查。",
+      "evidence": [
+        "packages/agent-service/src/api/health.ts:L155-L239"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "api.health.model",
+      "type": "HealthAPI",
+      "name": "GET /health/model",
+      "description": "模型 ping。",
+      "evidence": [
+        "packages/agent-service/src/api/health.ts:L253-L269"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "api.health.ready",
+      "type": "HealthAPI",
+      "name": "GET /health/ready",
+      "description": "readiness = db + mcp，不含 model。",
+      "evidence": [
+        "packages/agent-service/src/api/health.ts:L281-L298"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "api.chat.completions",
+      "type": "HTTPAPI",
+      "name": "POST /v1/chat/completions",
+      "description": "OpenAI-compatible SSE 桥入口。",
+      "evidence": [
+        "packages/agent-service/src/api/chat-completions.ts:L243-L453"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "api.mcp_mock.health",
+      "type": "HealthAPI",
+      "name": "GET mcp-mock /health",
+      "description": "返回 mock 状态、协议版本、fixtureProfile、toolCount。",
+      "evidence": [
+        "packages/mcp-mock-server/src/app.ts:L128-L137"
+      ],
+      "properties": {},
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-AI-001",
+      "type": "BusinessRule",
+      "name": "不能编造业务数据",
+      "description": "销售额、库存、SKU、采购数量必须来自 MCP Tool 返回或已保存草稿。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L37-L47"
+      ],
+      "properties": {
+        "ruleId": "R-AI-001"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-AI-002",
+      "type": "BusinessRule",
+      "name": "创建采购单必须确认",
+      "description": "AI 不能绕过确认；采购单创建前必须展示结构化明细并获得明确确认。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L41-L43"
+      ],
+      "properties": {
+        "ruleId": "R-AI-002"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-AI-003",
+      "type": "BusinessRule",
+      "name": "不能从 Markdown 反解析提单",
+      "description": "采购单明细必须来自 ReplenishmentDraft.items / finalSuggestQty，不得从展示文本提取。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L1137-L1150"
+      ],
+      "properties": {
+        "ruleId": "R-AI-003"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-SEC-001",
+      "type": "BusinessRule",
+      "name": "商家/门店硬隔离",
+      "description": "查询、草稿、策略、采购单绑定 merchantId/storeId；DraftManager 所有 SQL 带租户条件。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L1154-L1164; packages/agent-service/src/safety/draft-manager.ts:L15-L21"
+      ],
+      "properties": {
+        "ruleId": "R-SEC-001"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-STR-001",
+      "type": "BusinessRule",
+      "name": "策略合并优先级",
+      "description": "EffectiveStrategy 由 Store > Merchant > Platform 合并；合并失败降级并记录原因。",
+      "evidence": [
+        "packages/agent-service/src/safety/strategy-engine.ts:L1-L17"
+      ],
+      "properties": {
+        "ruleId": "R-STR-001"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-STR-002",
+      "type": "BusinessRule",
+      "name": "禁止自动采购单",
+      "description": "StrategySchema 中 allowAutoPurchaseOrder 固定 false。",
+      "evidence": [
+        "packages/shared-contracts/src/strategies.ts:L14-L33"
+      ],
+      "properties": {
+        "ruleId": "R-STR-002"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-STR-003",
+      "type": "BusinessRule",
+      "name": "写操作必须用户确认",
+      "description": "StrategySchema 中 requireUserConfirmForWrite 固定 true。",
+      "evidence": [
+        "packages/shared-contracts/src/strategies.ts:L14-L33"
+      ],
+      "properties": {
+        "ruleId": "R-STR-003"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-SKILL-001",
+      "type": "BusinessRule",
+      "name": "SkillDef 与 Workflow 严格一致",
+      "description": "启动期读取 agent_skill_def enabled/gray 行，与 5 个 workflow id 严格相等，否则启动失败。",
+      "evidence": [
+        "packages/agent-service/src/mastra/agents/skill-registry.ts:L8-L23"
+      ],
+      "properties": {
+        "ruleId": "R-SKILL-001"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-SKILL-002",
+      "type": "BusinessRule",
+      "name": "灰度/禁用网关",
+      "description": "disabled 或 gray 但 merchantId 不在 GRAY_MERCHANT_WHITELIST 时抛 SKILL_NOT_AVAILABLE。",
+      "evidence": [
+        "packages/agent-service/src/mastra/agents/skill-registry.ts:L261-L328"
+      ],
+      "properties": {
+        "ruleId": "R-SKILL-002"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-MCP-001",
+      "type": "BusinessRule",
+      "name": "MCP 工具白名单严格相等",
+      "description": "启动期 found.sort 与 7 工具 expected.sort 严格相等，并检查 input/output schema 非空。",
+      "evidence": [
+        "packages/agent-service/src/mastra/mcp/client.ts:L36-L55; packages/agent-service/src/mastra/mcp/client.ts:L142-L187"
+      ],
+      "properties": {
+        "ruleId": "R-MCP-001"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-HTTP-001",
+      "type": "BusinessRule",
+      "name": "Chat Completions 请求不允许工具调用字段",
+      "description": "OpenAiRequestSchema 拒绝 tools/tool_choice/functions/function_call/response_format 等字段。",
+      "evidence": [
+        "packages/shared-contracts/src/http.ts:L11-L27"
+      ],
+      "properties": {
+        "ruleId": "R-HTTP-001"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-OUT-001",
+      "type": "BusinessRule",
+      "name": "禁止工具调用泄漏给前端",
+      "description": "OutputGuard 扫描 tool_calls/function_call/tool_call_id 等禁用 token，命中记录 P0 hash。",
+      "evidence": [
+        "packages/agent-service/src/bridge/output-guard.ts:L43-L86"
+      ],
+      "properties": {
+        "ruleId": "R-OUT-001"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-NUM-001",
+      "type": "BusinessRule",
+      "name": "数字一致性校验",
+      "description": "输出数字必须来自允许集/派生值；不用 LLM judge。",
+      "evidence": [
+        "packages/agent-service/src/safety/output-validator.ts:L1-L23; packages/agent-service/src/safety/output-validator.ts:L63-L147"
+      ],
+      "properties": {
+        "ruleId": "R-NUM-001"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-DRAFT-001",
+      "type": "BusinessRule",
+      "name": "草稿 7 状态机",
+      "description": "DRAFT→WAIT_CONFIRM/CANCELLED/EXPIRED；WAIT_CONFIRM→CONFIRMED/CANCELLED/EXPIRED；CONFIRMED→SUBMITTED/FAILED/CANCELLED；终态不可再流转。",
+      "evidence": [
+        "packages/agent-service/src/safety/draft-manager.ts:L44-L88"
+      ],
+      "properties": {
+        "ruleId": "R-DRAFT-001"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-DRAFT-002",
+      "type": "BusinessRule",
+      "name": "草稿 30 分钟过期与 5 分钟兜底",
+      "description": "replenishment_draft expires_at 默认 30 分钟，idx_draft_tenant_recent 支持 session 漂移找最近草稿。",
+      "evidence": [
+        "migrations/002-init-replenishment.sql:L8-L33"
+      ],
+      "properties": {
+        "ruleId": "R-DRAFT-002"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-HITL-001",
+      "type": "BusinessRule",
+      "name": "HITL resume 互斥锁",
+      "description": "resume_locked_at 10 秒租约，防止并发确认重复提交。",
+      "evidence": [
+        "packages/agent-service/src/safety/confirm-manager.ts:L106-L120"
+      ],
+      "properties": {
+        "ruleId": "R-HITL-001"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-PO-001",
+      "type": "BusinessRule",
+      "name": "采购单幂等键",
+      "description": "createPurchaseOrder 输入要求 idempotencyKey === sourceDraftId；source 固定 AI_REPLENISHMENT_AGENT。",
+      "evidence": [
+        "packages/shared-contracts/src/mcp/createPurchaseOrder.ts:L1-L45"
+      ],
+      "properties": {
+        "ruleId": "R-PO-001"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-OPS-001",
+      "type": "BusinessRule",
+      "name": "健康检查语义",
+      "description": "/health 是 liveness 不做 IO；/health/ready 聚合 db+mcp，不包含 model。",
+      "evidence": [
+        "packages/agent-service/src/api/health.ts:L1-L18; packages/agent-service/src/api/health.ts:L281-L298"
+      ],
+      "properties": {
+        "ruleId": "R-OPS-001"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-OPS-002",
+      "type": "BusinessRule",
+      "name": "优雅停机顺序",
+      "description": "停止接收新请求，等待 SSE，abort inflight，释放 MCP，停止 cron，关闭 DB pool。",
+      "evidence": [
+        "packages/agent-service/src/server.ts:L325-L395"
+      ],
+      "properties": {
+        "ruleId": "R-OPS-002"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-ENV-001",
+      "type": "BusinessRule",
+      "name": "生产 CORS/数字校验保护",
+      "description": "生产 CORS 不能 *；生产环境不能关闭数字一致性校验。",
+      "evidence": [
+        "packages/agent-service/src/config/env.ts:L35-L63"
+      ],
+      "properties": {
+        "ruleId": "R-ENV-001"
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "rule.R-MOCK-001",
+      "type": "BusinessRule",
+      "name": "Mock 服务生产禁用",
+      "description": "mcp-mock-server 在 NODE_ENV=production 时 process.exit(1)。",
+      "evidence": [
+        "packages/mcp-mock-server/src/config/env.ts:L69-L72"
+      ],
+      "properties": {
+        "ruleId": "R-MOCK-001"
+      },
+      "confidence": 0.95
+    }
+  ],
+  "relations": [
+    {
+      "source": "skill.business_daily_report",
+      "relation_type": "implementsWorkflow",
+      "target": "workflow.business_daily_report",
+      "description": "Skill business_daily_report 对应 workflow business_daily_report",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L31-L38"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.business_monthly_report",
+      "relation_type": "implementsWorkflow",
+      "target": "workflow.business_monthly_report",
+      "description": "Skill business_monthly_report 对应 workflow business_monthly_report",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L40-L46"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.replenishment_forecast",
+      "relation_type": "implementsWorkflow",
+      "target": "workflow.replenishment_forecast",
+      "description": "Skill replenishment_forecast 对应 workflow replenishment_forecast",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L48-L53"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.replenishment_adjustment",
+      "relation_type": "implementsWorkflow",
+      "target": "workflow.replenishment_adjustment",
+      "description": "Skill replenishment_adjustment 对应 workflow replenishment_adjustment",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L55-L60"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.purchase_order_create",
+      "relation_type": "implementsWorkflow",
+      "target": "workflow.purchase_order_create",
+      "description": "Skill purchase_order_create 对应 workflow purchase_order_create",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L62-L69"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "project.storepilot-ai",
+      "relation_type": "contains",
+      "target": "component.storepilot_ai",
+      "description": "根项目包含 workspace 与工具链。",
+      "evidence": [
+        "README.md:L5-L27"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "project.storepilot-ai",
+      "relation_type": "contains",
+      "target": "component.storepilot.agent_service",
+      "description": "主服务包。",
+      "evidence": [
+        "README.md:L9-L14"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "project.storepilot-ai",
+      "relation_type": "contains",
+      "target": "component.storepilot.shared_contracts",
+      "description": "共享契约包。",
+      "evidence": [
+        "README.md:L9-L14"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "project.storepilot-ai",
+      "relation_type": "contains",
+      "target": "component.storepilot.mcp_mock_server",
+      "description": "MCP mock 包。",
+      "evidence": [
+        "README.md:L9-L14"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "component.storepilot.agent_service",
+      "relation_type": "dependsOn",
+      "target": "component.storepilot.shared_contracts",
+      "description": "主服务依赖共享契约。",
+      "evidence": [
+        "packages/agent-service/package.json:L15-L37"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "component.storepilot.agent_service",
+      "relation_type": "exposes",
+      "target": "api.chat.completions",
+      "description": "提供 OpenAI-compatible Chat Completions SSE 桥。",
+      "evidence": [
+        "packages/agent-service/src/api/chat-completions.ts:L243-L453"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "component.storepilot.agent_service",
+      "relation_type": "exposes",
+      "target": "api.health",
+      "description": "提供 5 个健康检查路由。",
+      "evidence": [
+        "packages/agent-service/src/api/health.ts:L1-L18"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "component.storepilot.agent_service",
+      "relation_type": "calls",
+      "target": "tool.*",
+      "description": "通过 MCPClient 调用 7 个 ERP MCP 工具。",
+      "evidence": [
+        "packages/agent-service/src/mastra/mcp/client.ts:L36-L55"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "component.storepilot.mcp_mock_server",
+      "relation_type": "registers",
+      "target": "tool.*",
+      "description": "mock-server 注册 7 个工具并支持 fixtures。",
+      "evidence": [
+        "packages/mcp-mock-server/src/mcp-server.ts:L85-L190"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "domain.Merchant",
+      "relation_type": "owns",
+      "target": "domain.Store",
+      "description": "商家拥有多个门店。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L131-L153"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "domain.Store",
+      "relation_type": "has",
+      "target": "domain.InventorySnapshot",
+      "description": "门店拥有 SKU 库存快照。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L131-L153"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "domain.Store",
+      "relation_type": "has",
+      "target": "domain.SalesSummary",
+      "description": "门店拥有经营销售汇总。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L131-L153"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "domain.Category",
+      "relation_type": "contains",
+      "target": "domain.Sku",
+      "description": "品类包含 SKU。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L131-L153"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "domain.AgentSession",
+      "relation_type": "creates",
+      "target": "domain.ReplenishmentDraft",
+      "description": "会话创建补货草稿。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L131-L153",
+        "migrations/002-init-replenishment.sql:L8-L33"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "domain.ReplenishmentDraft",
+      "relation_type": "contains",
+      "target": "domain.DraftItem",
+      "description": "草稿包含补货明细。",
+      "evidence": [
+        "packages/shared-contracts/src/drafts.ts:L20-L46"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "domain.ReplenishmentDraft",
+      "relation_type": "adjustedBy",
+      "target": "domain.AdjustmentInstruction",
+      "description": "草稿可被用户调整指令修改。",
+      "evidence": [
+        "migrations/002-init-replenishment.sql:L35-L54",
+        "migrations/011-extend-replenishment-adjustment-log.sql:L14-L22"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "domain.ReplenishmentDraft",
+      "relation_type": "submittedAs",
+      "target": "domain.PurchaseOrder",
+      "description": "确认后以 createPurchaseOrder 写入 ERP 采购单。",
+      "evidence": [
+        "packages/agent-service/src/mastra/workflows/purchase-order-create.ts:L244-L303"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.business_daily_report",
+      "relation_type": "requiresTool",
+      "target": "tool.getStoreReportConfig",
+      "description": "business_daily_report 需要 MCP 工具 getStoreReportConfig",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L31-L38"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.business_daily_report",
+      "relation_type": "requiresTool",
+      "target": "tool.queryStoreSalesSummary",
+      "description": "business_daily_report 需要 MCP 工具 queryStoreSalesSummary",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L31-L38"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.business_daily_report",
+      "relation_type": "requiresTool",
+      "target": "tool.queryCategorySalesRatio",
+      "description": "business_daily_report 需要 MCP 工具 queryCategorySalesRatio",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L31-L38"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.business_daily_report",
+      "relation_type": "requiresTool",
+      "target": "tool.queryProductSalesRank",
+      "description": "business_daily_report 需要 MCP 工具 queryProductSalesRank",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L31-L38"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.business_daily_report",
+      "relation_type": "requiresTool",
+      "target": "tool.queryInventoryOverview",
+      "description": "business_daily_report 需要 MCP 工具 queryInventoryOverview",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L31-L38"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.business_monthly_report",
+      "relation_type": "requiresTool",
+      "target": "tool.queryStoreSalesSummary",
+      "description": "business_monthly_report 需要 MCP 工具 queryStoreSalesSummary",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L40-L46"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.business_monthly_report",
+      "relation_type": "requiresTool",
+      "target": "tool.queryCategorySalesRatio",
+      "description": "business_monthly_report 需要 MCP 工具 queryCategorySalesRatio",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L40-L46"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.business_monthly_report",
+      "relation_type": "requiresTool",
+      "target": "tool.queryProductSalesRank",
+      "description": "business_monthly_report 需要 MCP 工具 queryProductSalesRank",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L40-L46"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.business_monthly_report",
+      "relation_type": "requiresTool",
+      "target": "tool.queryInventoryOverview",
+      "description": "business_monthly_report 需要 MCP 工具 queryInventoryOverview",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L40-L46"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.replenishment_forecast",
+      "relation_type": "requiresTool",
+      "target": "tool.queryReplenishmentBaseData",
+      "description": "replenishment_forecast 需要 MCP 工具 queryReplenishmentBaseData",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L48-L53"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "skill.purchase_order_create",
+      "relation_type": "requiresTool",
+      "target": "tool.createPurchaseOrder",
+      "description": "purchase_order_create 需要 MCP 工具 createPurchaseOrder",
+      "evidence": [
+        "migrations/011-seed-agent-skill-def.sql:L62-L69"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "workflow.replenishment_forecast",
+      "relation_type": "writes",
+      "target": "table.replenishment_draft",
+      "description": "补货预测计算并持久化草稿。",
+      "evidence": [
+        "packages/agent-service/src/mastra/workflows/replenishment-forecast.ts:L320-L417"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "workflow.replenishment_adjustment",
+      "relation_type": "writes",
+      "target": "table.replenishment_adjustment_log",
+      "description": "每次调整写审计日志。",
+      "evidence": [
+        "packages/agent-service/src/mastra/workflows/replenishment-adjustment.ts:L482-L544"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "workflow.purchase_order_create",
+      "relation_type": "calls",
+      "target": "tool.createPurchaseOrder",
+      "description": "确认后调用 ERP 创建采购单。",
+      "evidence": [
+        "packages/agent-service/src/mastra/workflows/purchase-order-create.ts:L244-L303"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "workflow.purchase_order_create",
+      "relation_type": "updates",
+      "target": "table.replenishment_draft",
+      "description": "markSubmitted 写入 submitted_po_no。",
+      "evidence": [
+        "packages/agent-service/src/mastra/workflows/purchase-order-create.ts:L283-L296"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "table.agent_session",
+      "relation_type": "references",
+      "target": "table.replenishment_draft",
+      "description": "active_draft_id 保存挂起/活跃草稿。",
+      "evidence": [
+        "migrations/006-init-agent-session.sql:L16-L20"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "source": "table.agent_session",
+      "relation_type": "coordinates",
+      "target": "table.mastra_workflow_suspend",
+      "description": "active_run_id/step/expires/lock 与 suspend payload 协同。",
+      "evidence": [
+        "migrations/006-init-agent-session.sql:L16-L20",
+        "migrations/010-init-mastra-workflow-suspend.sql:L7-L17"
+      ],
+      "confidence": 0.92
+    }
+  ],
+  "rules": [
+    {
+      "id": "R-AI-001",
+      "name": "不能编造业务数据",
+      "description": "销售额、库存、SKU、采购数量必须来自 MCP Tool 返回或已保存草稿。",
+      "evidence": "docs/门店助手Agent_V1_本体模型文档.md:L37-L47"
+    },
+    {
+      "id": "R-AI-002",
+      "name": "创建采购单必须确认",
+      "description": "AI 不能绕过确认；采购单创建前必须展示结构化明细并获得明确确认。",
+      "evidence": "docs/门店助手Agent_V1_本体模型文档.md:L41-L43"
+    },
+    {
+      "id": "R-AI-003",
+      "name": "不能从 Markdown 反解析提单",
+      "description": "采购单明细必须来自 ReplenishmentDraft.items / finalSuggestQty，不得从展示文本提取。",
+      "evidence": "docs/门店助手Agent_V1_本体模型文档.md:L1137-L1150"
+    },
+    {
+      "id": "R-SEC-001",
+      "name": "商家/门店硬隔离",
+      "description": "查询、草稿、策略、采购单绑定 merchantId/storeId；DraftManager 所有 SQL 带租户条件。",
+      "evidence": "docs/门店助手Agent_V1_本体模型文档.md:L1154-L1164; packages/agent-service/src/safety/draft-manager.ts:L15-L21"
+    },
+    {
+      "id": "R-STR-001",
+      "name": "策略合并优先级",
+      "description": "EffectiveStrategy 由 Store > Merchant > Platform 合并；合并失败降级并记录原因。",
+      "evidence": "packages/agent-service/src/safety/strategy-engine.ts:L1-L17"
+    },
+    {
+      "id": "R-STR-002",
+      "name": "禁止自动采购单",
+      "description": "StrategySchema 中 allowAutoPurchaseOrder 固定 false。",
+      "evidence": "packages/shared-contracts/src/strategies.ts:L14-L33"
+    },
+    {
+      "id": "R-STR-003",
+      "name": "写操作必须用户确认",
+      "description": "StrategySchema 中 requireUserConfirmForWrite 固定 true。",
+      "evidence": "packages/shared-contracts/src/strategies.ts:L14-L33"
+    },
+    {
+      "id": "R-SKILL-001",
+      "name": "SkillDef 与 Workflow 严格一致",
+      "description": "启动期读取 agent_skill_def enabled/gray 行，与 5 个 workflow id 严格相等，否则启动失败。",
+      "evidence": "packages/agent-service/src/mastra/agents/skill-registry.ts:L8-L23"
+    },
+    {
+      "id": "R-SKILL-002",
+      "name": "灰度/禁用网关",
+      "description": "disabled 或 gray 但 merchantId 不在 GRAY_MERCHANT_WHITELIST 时抛 SKILL_NOT_AVAILABLE。",
+      "evidence": "packages/agent-service/src/mastra/agents/skill-registry.ts:L261-L328"
+    },
+    {
+      "id": "R-MCP-001",
+      "name": "MCP 工具白名单严格相等",
+      "description": "启动期 found.sort 与 7 工具 expected.sort 严格相等，并检查 input/output schema 非空。",
+      "evidence": "packages/agent-service/src/mastra/mcp/client.ts:L36-L55; packages/agent-service/src/mastra/mcp/client.ts:L142-L187"
+    },
+    {
+      "id": "R-HTTP-001",
+      "name": "Chat Completions 请求不允许工具调用字段",
+      "description": "OpenAiRequestSchema 拒绝 tools/tool_choice/functions/function_call/response_format 等字段。",
+      "evidence": "packages/shared-contracts/src/http.ts:L11-L27"
+    },
+    {
+      "id": "R-OUT-001",
+      "name": "禁止工具调用泄漏给前端",
+      "description": "OutputGuard 扫描 tool_calls/function_call/tool_call_id 等禁用 token，命中记录 P0 hash。",
+      "evidence": "packages/agent-service/src/bridge/output-guard.ts:L43-L86"
+    },
+    {
+      "id": "R-NUM-001",
+      "name": "数字一致性校验",
+      "description": "输出数字必须来自允许集/派生值；不用 LLM judge。",
+      "evidence": "packages/agent-service/src/safety/output-validator.ts:L1-L23; packages/agent-service/src/safety/output-validator.ts:L63-L147"
+    },
+    {
+      "id": "R-DRAFT-001",
+      "name": "草稿 7 状态机",
+      "description": "DRAFT→WAIT_CONFIRM/CANCELLED/EXPIRED；WAIT_CONFIRM→CONFIRMED/CANCELLED/EXPIRED；CONFIRMED→SUBMITTED/FAILED/CANCELLED；终态不可再流转。",
+      "evidence": "packages/agent-service/src/safety/draft-manager.ts:L44-L88"
+    },
+    {
+      "id": "R-DRAFT-002",
+      "name": "草稿 30 分钟过期与 5 分钟兜底",
+      "description": "replenishment_draft expires_at 默认 30 分钟，idx_draft_tenant_recent 支持 session 漂移找最近草稿。",
+      "evidence": "migrations/002-init-replenishment.sql:L8-L33"
+    },
+    {
+      "id": "R-HITL-001",
+      "name": "HITL resume 互斥锁",
+      "description": "resume_locked_at 10 秒租约，防止并发确认重复提交。",
+      "evidence": "packages/agent-service/src/safety/confirm-manager.ts:L106-L120"
+    },
+    {
+      "id": "R-PO-001",
+      "name": "采购单幂等键",
+      "description": "createPurchaseOrder 输入要求 idempotencyKey === sourceDraftId；source 固定 AI_REPLENISHMENT_AGENT。",
+      "evidence": "packages/shared-contracts/src/mcp/createPurchaseOrder.ts:L1-L45"
+    },
+    {
+      "id": "R-OPS-001",
+      "name": "健康检查语义",
+      "description": "/health 是 liveness 不做 IO；/health/ready 聚合 db+mcp，不包含 model。",
+      "evidence": "packages/agent-service/src/api/health.ts:L1-L18; packages/agent-service/src/api/health.ts:L281-L298"
+    },
+    {
+      "id": "R-OPS-002",
+      "name": "优雅停机顺序",
+      "description": "停止接收新请求，等待 SSE，abort inflight，释放 MCP，停止 cron，关闭 DB pool。",
+      "evidence": "packages/agent-service/src/server.ts:L325-L395"
+    },
+    {
+      "id": "R-ENV-001",
+      "name": "生产 CORS/数字校验保护",
+      "description": "生产 CORS 不能 *；生产环境不能关闭数字一致性校验。",
+      "evidence": "packages/agent-service/src/config/env.ts:L35-L63"
+    },
+    {
+      "id": "R-MOCK-001",
+      "name": "Mock 服务生产禁用",
+      "description": "mcp-mock-server 在 NODE_ENV=production 时 process.exit(1)。",
+      "evidence": "packages/mcp-mock-server/src/config/env.ts:L69-L72"
+    }
+  ],
+  "discrepancies": [
+    {
+      "id": "D-README-SLICE-STATUS",
+      "title": "README 切片状态与当前代码实现不一致",
+      "description": "README 仍写当前仅完成切片 01/02 与 03-21 待执行，但代码、migrations、tests、Skill 种子已经覆盖后续多个切片。建议更新 README 作为工程状态 SSOT。",
+      "evidence": [
+        "README.md:L1-L4",
+        "README.md:L136-L146",
+        "migrations/011-seed-agent-skill-def.sql:L1-L26",
+        "packages/agent-service/src/mastra/workflows/index.ts:L19-L26"
+      ]
+    },
+    {
+      "id": "D-DOC-DDL-VS-MIGRATION",
+      "title": "原本体模型文档的“数据表建议”与实际 migrations 有字段差异",
+      "description": "例如原文档建议 replenishment_draft 使用 draft_items_json/report_markdown 等字段，实际 DDL 使用 items、strategy_version、submitted_po_no、expires_at 等。当前文档包以 migrations 为数据持久化 SSOT。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L1510-L1659",
+        "migrations/002-init-replenishment.sql:L8-L33"
+      ]
+    },
+    {
+      "id": "D-MIGRATION-011-DUPLICATE-PREFIX",
+      "title": "存在两个 011 migration 文件",
+      "description": "migrations/011-extend-replenishment-adjustment-log.sql 与 migrations/011-seed-agent-skill-def.sql 共享 011 序号；若迁移 runner 仅按文件名排序可运行，但后续维护建议改成唯一编号。",
+      "evidence": [
+        "migrations/011-extend-replenishment-adjustment-log.sql",
+        "migrations/011-seed-agent-skill-def.sql"
+      ]
+    },
+    {
+      "id": "D-ADJUSTMENT-DISPATCHER-NOT-WIRED",
+      "title": "补货调整 workflow 已实现，但 dispatcher 当前返回未接入提示",
+      "description": "replenishment-adjustment.ts 已包含 load/extract/apply/persist 流程并写日志；但 business-report-dispatcher.ts 对 ADJUST_REPLENISHMENT_DRAFT 返回“尚未完整接入桥接层”。",
+      "evidence": [
+        "packages/agent-service/src/mastra/workflows/replenishment-adjustment.ts:L1-L37",
+        "packages/agent-service/src/api/business-report-dispatcher.ts:L226-L236"
+      ]
+    },
+    {
+      "id": "D-BUSINESS-DOMAIN-TABLES-EXTERNAL",
+      "title": "核心业务实体多数由 ERP/MCP 提供，本仓库不落本地业务主数据表",
+      "description": "Merchant/Store/Sku/Category/Supplier/SalesSummary/InventorySnapshot 等在本体文档和 MCP 契约中定义，本地 SQL 主要存 Agent 运行态、策略、草稿、会话与审计。",
+      "evidence": [
+        "docs/门店助手Agent_V1_本体模型文档.md:L86-L153",
+        "packages/shared-contracts/src/mcp/queryReplenishmentBaseData.ts:L7-L43",
+        "migrations/001-init-skill-and-strategy.sql:L7-L52",
+        "migrations/002-init-replenishment.sql:L8-L54"
+      ]
+    }
+  ]
+}

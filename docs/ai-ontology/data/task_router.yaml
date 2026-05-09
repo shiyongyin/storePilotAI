@@ -1,0 +1,34 @@
+generated_at: "2026-05-08"
+routes:
+  add_skill:
+    read:
+      - AI_ONTOLOGY.md
+      - docs/ai-ontology/04_skill_intent_workflow.md
+      - docs/ai-ontology/cards/skill_gate.md
+      - docs/ai-ontology/07_guardrails.md
+  change_mcp:
+    read:
+      - docs/ai-ontology/05_mcp_contracts.md
+      - docs/ai-ontology/cards/mcp_contract_drift.md
+  change_purchase_order:
+    read:
+      - docs/ai-ontology/cards/purchase_order_high_risk.md
+      - docs/ai-ontology/07_guardrails.md
+      - docs/ai-ontology/06_data_persistence.md
+  change_replenishment_draft:
+    read:
+      - docs/ai-ontology/02_domain_model.md
+      - docs/ai-ontology/cards/replenishment_draft_state_machine.md
+      - docs/ai-ontology/06_data_persistence.md
+  change_report_output:
+    read:
+      - docs/ai-ontology/04_skill_intent_workflow.md
+      - docs/ai-ontology/cards/report_number_consistency.md
+  change_runtime_api:
+    read:
+      - docs/ai-ontology/03_runtime_and_boundaries.md
+      - docs/ai-ontology/07_guardrails.md
+  change_db:
+    read:
+      - docs/ai-ontology/06_data_persistence.md
+      - docs/ai-ontology/09_open_issues.md

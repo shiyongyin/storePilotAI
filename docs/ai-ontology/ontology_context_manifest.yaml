@@ -1,0 +1,51 @@
+generated_at: "2026-05-08"
+project: storepilot-ai
+read_first:
+  - AGENTS.md
+  - AI_ONTOLOGY.md
+load_policy:
+  default: read_minimal_then_route_by_task
+  avoid_default_full_context: true
+layers:
+  L0_always:
+    - AI_ONTOLOGY.md
+    - AGENTS.md
+  L1_core:
+    - docs/ai-ontology/01_core_ontology.md
+    - docs/ai-ontology/07_guardrails.md
+    - docs/ai-ontology/08_codex_change_playbook.md
+  L2_task_specific:
+    skill_intent_workflow: docs/ai-ontology/04_skill_intent_workflow.md
+    domain_model: docs/ai-ontology/02_domain_model.md
+    runtime: docs/ai-ontology/03_runtime_and_boundaries.md
+    mcp: docs/ai-ontology/05_mcp_contracts.md
+    data: docs/ai-ontology/06_data_persistence.md
+    open_issues: docs/ai-ontology/09_open_issues.md
+  L3_evidence:
+    - docs/ai-ontology/10_evidence_index.md
+    - docs/ai-ontology/reference/project_ontology.json
+must_check_rules:
+  purchase_order:
+    - R-AI-002
+    - R-AI-003
+    - R-PO-001
+    - R-HITL-001
+  mcp_contract:
+    - R-MCP-001
+    - R-SKILL-001
+  tenant_state:
+    - R-SEC-001
+  numeric_output:
+    - R-AI-001
+    - R-NUM-001
+  frontend_output:
+    - R-OUT-001
+source_of_truth_priority:
+  contracts: packages/shared-contracts/src
+  persistence: migrations/*.sql
+  runtime: packages/agent-service/src
+  mcp_mock: packages/mcp-mock-server/src
+  product_design: docs/门店助手Agent_V1_本体模型文档.md
+secret_policy:
+  env_values: never_emit
+  env_schema_keys: allowed
