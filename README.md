@@ -132,6 +132,23 @@ pnpm install --frozen-lockfile
 
 本地启动建议分两段：先启动 MySQL 和 MCP mock，完成迁移后再启动 agent-service。agent-service 启动期会校验 MySQL 表数量、Mastra 存储表、MCP 7 工具白名单和 skill 定义；如果迁移未执行，直接 `docker compose up` 会导致 agent-service 健康检查失败。
 
+### AI 辅助启动
+
+新人不需要手工理解下面所有命令。把这句话发给 AI 即可：
+
+```text
+请先阅读 AI_LOCAL_BOOTSTRAP.md，然后用交互方式问我缺少的配置。等我提供配置后，你负责创建本地 env、启动 Docker Compose、执行 migration、签发本地 API Key、启动 LobeChat，并给出健康检查结果。不要提交 .env 文件，不要在最终报告展示完整 Key。
+```
+
+AI 会按 [AI_LOCAL_BOOTSTRAP.md](./AI_LOCAL_BOOTSTRAP.md) 执行。新人只需要准备：
+
+- GitHub 仓库访问权限。
+- 本地目录。
+- OpenAI 兼容模型的 `MODEL_BASE_URL`、`MODEL_API_KEY`、`MODEL_NAME`。
+- LobeChat 本地访问码。
+- 本地测试用 `merchantId`、`storeId`、`userId`。
+- 授权 AI 安装依赖、启动 Docker、创建本地 `.env.*.dev` 文件、执行 migration 和签发 API Key。
+
 ### 1. 准备本地环境文件
 
 `.env.*.dev` 属于本地密钥文件，默认不纳入 Git。首次启动需要在仓库根创建下面 3 个文件。
