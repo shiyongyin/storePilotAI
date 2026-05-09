@@ -10,7 +10,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint src --ext .ts",
-    "test:rollback": "tsx --test src/rollback-plan.test.ts",
+    "test": "vitest run",
+    "test:rollback": "vitest run src/rollback-plan.test.ts",
     "typecheck": "tsc --noEmit",
     "exec": "tsx src/migrate.ts"
   },

@@ -10,6 +10,7 @@
   "scripts": {
     "build": "tsc -p .",
     "lint": "eslint src --ext .ts",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "exec": "tsx src/issue.ts"
   },

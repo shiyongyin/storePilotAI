@@ -19,7 +19,7 @@
  *       9. stripUndefinedDeep —— payload 含嵌套 undefined → 入库后该字段消失
  *
  * 凭据约定：
- *   - 默认 `mysql://root:123456@127.0.0.1:3306` —— 本地 dev 默认；可被
+ *   - 默认 `mysql://root:rootpw@127.0.0.1:3306` —— 本地 dev 默认；可被
  *     `MYSQL_TEST_URL` env 覆盖（CI 推荐覆盖）。
  *   - 不复用 store_pilot 库（开发库会被污染；建独立 schema）。
  */
@@ -49,7 +49,7 @@ import { type MysqlStoragePool } from './sql.js';
  * 和建表，再让下方 describe 静态读取常量 mysqlAvailable / storage。
  * ========================================================================== */
 
-const BASE_URL = process.env.MYSQL_TEST_URL ?? 'mysql://root:123456@127.0.0.1:3306';
+const BASE_URL = process.env.MYSQL_TEST_URL ?? 'mysql://root:rootpw@127.0.0.1:3306';
 const TEST_SCHEMA = `storepilot_test_slice07_${Date.now()}`;
 
 /**

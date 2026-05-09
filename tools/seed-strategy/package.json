@@ -11,7 +11,7 @@
     "build": "tsc -p .",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/index.test.ts",
+    "test": "vitest run",
     "exec": "tsx src/index.ts",
     "start": "tsx src/index.ts"
   },

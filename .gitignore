@@ -29,6 +29,8 @@ coverage/
 /progress.md
 /research.md
 /task_plan.md
+/test-audit-*.md
+.cursorindexingignore
 
 # pnpm
 .pnpm-store/

@@ -22,6 +22,7 @@
  */
 /* eslint-disable no-console */
 import { randomBytes } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 
 import argon2 from 'argon2';
 import 'dotenv/config';
@@ -30,11 +31,33 @@ import { z } from 'zod';
 
 const DEFAULT_TTL_DAYS = 90;
 
-interface CliArgs {
+export interface CliArgs {
   merchantId: string;
   storeId: string | null;
   userId: string;
   ttlDays: number;
+}
+
+export interface IssueEnv {
+  databaseUrl: string;
+  salt: string;
+  prefix: string;
+}
+
+export interface IssueResult {
+  plaintext: string;
+  prefix: string;
+  args: CliArgs;
+}
+
+export class IssueCliError extends Error {
+  constructor(
+    message: string,
+    readonly exitCode: number,
+  ) {
+    super(message);
+    this.name = 'IssueCliError';
+  }
 }
 
 const ArgsSchema = z.object({
@@ -50,7 +73,7 @@ const ArgsSchema = z.object({
  * 不依赖任何 CLI 框架（commander / yargs），保持 tools 包零业务依赖；
  * 兼容 `--key value` 与 `--key=value` 两种语法。
  */
-function parseArgs(argv: ReadonlyArray<string>): CliArgs {
+export function parseIssueArgs(argv: ReadonlyArray<string>): CliArgs {
   const map = new Map<string, string>();
   for (let i = 0; i < argv.length; i++) {
     const token = argv[i];
@@ -76,11 +99,10 @@ function parseArgs(argv: ReadonlyArray<string>): CliArgs {
     ttlDays: map.get('ttlDays') ?? DEFAULT_TTL_DAYS,
   });
   if (!parsed.success) {
-    console.error('[api-key-issuer] 参数错误：', parsed.error.flatten());
-    console.error(
-      'Usage: pnpm issue:apikey -- --merchantId <id> [--storeId <id>] --userId <id> [--ttlDays 90]',
+    throw new IssueCliError(
+      `[api-key-issuer] 参数错误：${JSON.stringify(parsed.error.flatten())}\n${usage()}`,
+      2,
     );
-    process.exit(2);
   }
   return parsed.data;
 }
@@ -89,21 +111,24 @@ function parseArgs(argv: ReadonlyArray<string>): CliArgs {
  * env 兜底：CLI 单独跑时不依赖 agent-service 的 getEnv()，避免引入 23 字段全集校验；
  * 仅校验 issue 必需的 3 个 env（DATABASE_URL / AGENT_API_KEY_HASH_SALT / AGENT_API_KEY_PREFIX）。
  */
-function readEnv(): { databaseUrl: string; salt: string; prefix: string } {
-  const databaseUrl = process.env['DATABASE_URL'];
+export function readIssueEnv(env: NodeJS.ProcessEnv = process.env): IssueEnv {
+  const databaseUrl = env['DATABASE_URL'];
   if (!databaseUrl || !/^mysql:\/\//.test(databaseUrl)) {
-    console.error('[api-key-issuer] DATABASE_URL 必须以 mysql:// 开头（见切片 01 .env.example）');
-    process.exit(1);
+    throw new IssueCliError(
+      '[api-key-issuer] DATABASE_URL 必须以 mysql:// 开头（见切片 01 .env.example）',
+      1,
+    );
   }
-  const salt = process.env['AGENT_API_KEY_HASH_SALT'];
+  const salt = env['AGENT_API_KEY_HASH_SALT'];
   if (!salt || salt.length < 16) {
-    console.error('[api-key-issuer] AGENT_API_KEY_HASH_SALT 必须 ≥ 16 字符（server pepper）');
-    process.exit(1);
+    throw new IssueCliError(
+      '[api-key-issuer] AGENT_API_KEY_HASH_SALT 必须 ≥ 16 字符（server pepper）',
+      1,
+    );
   }
-  const prefix = process.env['AGENT_API_KEY_PREFIX'] ?? 'sk-agent-';
+  const prefix = env['AGENT_API_KEY_PREFIX'] ?? 'sk-agent-';
   if (prefix !== 'sk-agent-') {
-    console.error('[api-key-issuer] AGENT_API_KEY_PREFIX 必须固定为 "sk-agent-"');
-    process.exit(1);
+    throw new IssueCliError('[api-key-issuer] AGENT_API_KEY_PREFIX 必须固定为 "sk-agent-"', 1);
   }
   return { databaseUrl, salt, prefix };
 }
@@ -148,22 +173,30 @@ async function insertRow(
   );
 }
 
-/**
- * 主流程（fail-fast；任意步骤抛错 → process.exit(1)）。
- */
-async function main(): Promise<void> {
-  const args = parseArgs(process.argv.slice(2));
-  const env = readEnv();
+type IssueConnection = Pick<Connection, 'execute' | 'end'>;
 
-  const { plaintext, prefix } = generateAgentApiKey(env.prefix);
+interface IssueAgentApiKeyDeps {
+  args: CliArgs;
+  env: IssueEnv;
+  createConnection?: (options: { uri: string }) => Promise<IssueConnection>;
+  generateKey?: (prefix: string) => { plaintext: string; prefix: string };
+}
+
+export async function issueAgentApiKey({
+  args,
+  env,
+  createConnection = (options) => mysql.createConnection(options),
+  generateKey = generateAgentApiKey,
+}: IssueAgentApiKeyDeps): Promise<IssueResult> {
+  const { plaintext, prefix } = generateKey(env.prefix);
   const hash = await argon2.hash(plaintext, {
     type: argon2.argon2id,
     secret: Buffer.from(env.salt),
   });
 
-  const conn = await mysql.createConnection({ uri: env.databaseUrl });
+  const conn = await createConnection({ uri: env.databaseUrl });
   try {
-    await insertRow(conn, {
+    await insertRow(conn as Connection, {
       hash,
       prefix,
       merchantId: args.merchantId,
@@ -175,19 +208,45 @@ async function main(): Promise<void> {
     await conn.end();
   }
 
+  return { plaintext, prefix, args };
+}
+
+/**
+ * 主流程（fail-fast；任意步骤抛错 → process.exit(1)）。
+ */
+async function main(): Promise<void> {
+  const args = parseIssueArgs(process.argv.slice(2));
+  const env = readIssueEnv();
+  const result = await issueAgentApiKey({ args, env });
+
   // 任务卡 §6 MUST DO §5：明文只在颁发时打印一次（不入库 / 不入日志 / 不入 RunLog）
   console.log('[api-key-issuer] 颁发成功');
   console.log(
     `  merchantId=${args.merchantId}  storeId=${args.storeId ?? '(null)'}  userId=${args.userId}`,
   );
-  console.log(`  apiKeyPrefix=${prefix}  ttlDays=${args.ttlDays}`);
+  console.log(`  apiKeyPrefix=${result.prefix}  ttlDays=${args.ttlDays}`);
   console.log('  明文 sk（仅此一次，请立即保存）：');
-  console.log(`  ${plaintext}`);
+  console.log(`  ${result.plaintext}`);
 }
 
-main().catch((err: unknown) => {
-  // 仅打印 message + name，避免 stack 中混入 secret（极端情况下 mysql2 错误可能含 URL）
-  const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
-  console.error('[api-key-issuer] 失败：', msg);
-  process.exit(1);
-});
+function usage(): string {
+  return 'Usage: pnpm issue:apikey -- --merchantId <id> [--storeId <id>] --userId <id> [--ttlDays 90]';
+}
+
+function isDirectRun(): boolean {
+  return process.argv[1] ? fileURLToPath(import.meta.url) === process.argv[1] : false;
+}
+
+if (isDirectRun()) {
+  main().catch((err: unknown) => {
+    if (err instanceof IssueCliError) {
+      console.error(err.message);
+      process.exit(err.exitCode);
+    }
+
+    // 仅打印 message + name，避免 stack 中混入 secret（极端情况下 mysql2 错误可能含 URL）
+    const msg = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    console.error('[api-key-issuer] 失败：', msg);
+    process.exit(1);
+  });
+}

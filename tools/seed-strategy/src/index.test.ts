@@ -7,13 +7,12 @@
  *   - `strategyJson` 不符合 StrategySchema → 抛错；
  *   - 入参 status 非 enabled/disabled → 抛错。
  *
- * 用 node:test 而非 vitest，保持 tools 包一致风格（同 `tools/migrate-runner`）。
+ * 使用 Vitest，保持 monorepo 测试 runner 统一。
  */
-import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import test from 'node:test';
+import { describe, expect, it } from 'vitest';
 
 import { loadSeedRows } from './index.js';
 
@@ -46,80 +45,82 @@ const HAPPY_STRATEGY = {
   },
 };
 
-void test('loadSeedRows: 单条对象 → 解析成 1 行；StrategySchema 校验通过', () => {
-  const json = JSON.stringify({
-    merchantId: 'M042',
-    version: 'merchant-M042-v1.0.0',
-    strategyJson: HAPPY_STRATEGY,
-  });
-  withTmpFile(json, (file) => {
-    const rows = loadSeedRows(file);
-    assert.equal(rows.length, 1);
-    assert.equal(rows[0]!.merchantId, 'M042');
-    assert.equal(rows[0]!.storeId, null);
-    assert.equal(rows[0]!.status, 'enabled');
-  });
-});
-
-void test('loadSeedRows: 数组形态 → 解析多行；含 storeId 的行被识别为门店级策略', () => {
-  const json = JSON.stringify([
-    {
+describe('loadSeedRows', () => {
+  it('单条对象 → 解析成 1 行；StrategySchema 校验通过', () => {
+    const json = JSON.stringify({
       merchantId: 'M042',
       version: 'merchant-M042-v1.0.0',
       strategyJson: HAPPY_STRATEGY,
-    },
-    {
-      merchantId: 'M042',
-      storeId: 'S042-01',
-      version: 'store-M042-S042-01-v1.0.0',
-      status: 'enabled',
+    });
+    withTmpFile(json, (file) => {
+      const rows = loadSeedRows(file);
+      expect(rows).toHaveLength(1);
+      expect(rows[0]!.merchantId).toBe('M042');
+      expect(rows[0]!.storeId).toBeNull();
+      expect(rows[0]!.status).toBe('enabled');
+    });
+  });
+
+  it('数组形态 → 解析多行；含 storeId 的行被识别为门店级策略', () => {
+    const json = JSON.stringify([
+      {
+        merchantId: 'M042',
+        version: 'merchant-M042-v1.0.0',
+        strategyJson: HAPPY_STRATEGY,
+      },
+      {
+        merchantId: 'M042',
+        storeId: 'S042-01',
+        version: 'store-M042-S042-01-v1.0.0',
+        status: 'enabled',
+        strategyJson: HAPPY_STRATEGY,
+      },
+    ]);
+    withTmpFile(json, (file) => {
+      const rows = loadSeedRows(file);
+      expect(rows).toHaveLength(2);
+      expect(rows[0]!.storeId).toBeNull();
+      expect(rows[1]!.storeId).toBe('S042-01');
+    });
+  });
+
+  it('缺 merchantId → 抛错', () => {
+    const json = JSON.stringify({
+      version: 'v1',
       strategyJson: HAPPY_STRATEGY,
-    },
-  ]);
-  withTmpFile(json, (file) => {
-    const rows = loadSeedRows(file);
-    assert.equal(rows.length, 2);
-    assert.equal(rows[0]!.storeId, null);
-    assert.equal(rows[1]!.storeId, 'S042-01');
+    });
+    withTmpFile(json, (file) => {
+      expect(() => loadSeedRows(file)).toThrow(/merchantId/);
+    });
   });
-});
 
-void test('loadSeedRows: 缺 merchantId → 抛错', () => {
-  const json = JSON.stringify({
-    version: 'v1',
-    strategyJson: HAPPY_STRATEGY,
+  it('strategyJson 不符合 StrategySchema → 抛错', () => {
+    const bad = {
+      ...HAPPY_STRATEGY,
+      replenishmentPolicy: {
+        ...HAPPY_STRATEGY.replenishmentPolicy,
+        allowAutoPurchaseOrder: true, // V1 红线：必须 false
+      },
+    };
+    const json = JSON.stringify({
+      merchantId: 'M042',
+      version: 'v1',
+      strategyJson: bad,
+    });
+    withTmpFile(json, (file) => {
+      expect(() => loadSeedRows(file)).toThrow(/StrategySchema/);
+    });
   });
-  withTmpFile(json, (file) => {
-    assert.throws(() => loadSeedRows(file), /merchantId/);
-  });
-});
 
-void test('loadSeedRows: strategyJson 不符合 StrategySchema → 抛错', () => {
-  const bad = {
-    ...HAPPY_STRATEGY,
-    replenishmentPolicy: {
-      ...HAPPY_STRATEGY.replenishmentPolicy,
-      allowAutoPurchaseOrder: true, // V1 红线：必须 false
-    },
-  };
-  const json = JSON.stringify({
-    merchantId: 'M042',
-    version: 'v1',
-    strategyJson: bad,
-  });
-  withTmpFile(json, (file) => {
-    assert.throws(() => loadSeedRows(file), /StrategySchema/);
-  });
-});
-
-void test('loadSeedRows: status 非法 → 抛错', () => {
-  const json = JSON.stringify({
-    merchantId: 'M042',
-    version: 'v1',
-    status: 'DEPRECATED',
-    strategyJson: HAPPY_STRATEGY,
-  });
-  withTmpFile(json, (file) => {
-    assert.throws(() => loadSeedRows(file), /status/);
+  it('status 非法 → 抛错', () => {
+    const json = JSON.stringify({
+      merchantId: 'M042',
+      version: 'v1',
+      status: 'DEPRECATED',
+      strategyJson: HAPPY_STRATEGY,
+    });
+    withTmpFile(json, (file) => {
+      expect(() => loadSeedRows(file)).toThrow(/status/);
+    });
   });
 });
