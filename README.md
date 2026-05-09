@@ -144,7 +144,7 @@ AI 会按 [AI_LOCAL_BOOTSTRAP.md](./AI_LOCAL_BOOTSTRAP.md) 执行。新人只需
 
 - GitHub 仓库访问权限。
 - 本地目录。
-- OpenAI 兼容模型的 `MODEL_BASE_URL`、`MODEL_API_KEY`、`MODEL_NAME`。
+- DeepSeek API Key。模型地址固定为 `https://api.deepseek.com/v1`，模型名固定为 `deepseek-chat`，新人不需要填写。
 - LobeChat 本地访问码。
 - 本地测试用 `merchantId`、`storeId`、`userId`。
 - 授权 AI 安装依赖、启动 Docker、创建本地 `.env.*.dev` 文件、执行 migration 和签发 API Key。
@@ -161,9 +161,9 @@ PORT=7100
 DATABASE_URL=mysql://root:rootpw@mysql:3306/store_pilot?timezone=Z&dateStrings=true&supportBigNumbers=true&bigNumberStrings=true&charset=utf8mb4&decimalNumbers=true
 
 MODEL_PROVIDER=openai-compatible
-MODEL_BASE_URL=https://api.openai.com/v1
-MODEL_API_KEY=sk-change-me
-MODEL_NAME=gpt-4o-mini
+MODEL_BASE_URL=https://api.deepseek.com/v1
+MODEL_API_KEY=sk-change-me-deepseek
+MODEL_NAME=deepseek-chat
 MODEL_TIMEOUT_MS=25000
 MAX_OUTPUT_TOKENS=4096
 MAX_TOOL_CALLS_PER_REQUEST=8
@@ -226,7 +226,7 @@ PORT=3210
 注意：
 
 - `MCP_TENANT_SHARED_SECRET` 在 agent 和 mock 中必须一致。
-- `MODEL_API_KEY` 用你的 OpenAI 兼容模型服务 Key，本地不要提交。
+- `MODEL_API_KEY` 使用新人提供的 DeepSeek API Key，本地不要提交。
 - `OPENAI_API_KEY` 后续用 `pnpm issue:apikey` 生成的 `sk-agent-*` 替换。
 
 ### 2. 启动 MySQL 和 MCP mock
