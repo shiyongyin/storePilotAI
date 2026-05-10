@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": [
+    {
+      "name": "red-team-guide",
+      "version": "1.0.0",
+      "sourceUrl": "https://skills.example.com/storepilot/red-team-guide.tgz",
+      "skillMdSha256": "2d65222ffdbfea8b7fdc608171bb451ff73818cde0d8a8bd26e5f9168cce5d72",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "sha256": "2d65222ffdbfea8b7fdc608171bb451ff73818cde0d8a8bd26e5f9168cce5d72",
+          "sizeBytes": 228,
+          "role": "skill"
+        }
+      ],
+      "path": "red-team-guide",
+      "enabled": true,
+      "riskLevel": "LOW",
+      "allowedAgents": [
+        "generalQa"
+      ],
+      "allowedMerchants": [
+        "M001"
+      ],
+      "scriptsPolicy": "deny"
+    }
+  ]
+}

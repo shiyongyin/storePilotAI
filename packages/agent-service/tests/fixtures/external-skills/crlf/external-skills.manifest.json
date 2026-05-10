@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": [
+    {
+      "name": "inventory-guide",
+      "version": "1.0.0",
+      "sourceUrl": "https://skills.example.com/storepilot/inventory-guide.tgz",
+      "skillMdSha256": "283dfb8ca76f56437dcf6e874518be6dc3b5c0a2fec49c8dfb6833648d8d5e17",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "sha256": "283dfb8ca76f56437dcf6e874518be6dc3b5c0a2fec49c8dfb6833648d8d5e17",
+          "sizeBytes": 133,
+          "role": "skill"
+        }
+      ],
+      "path": "inventory-guide",
+      "enabled": true,
+      "riskLevel": "LOW",
+      "allowedAgents": [
+        "generalQa"
+      ],
+      "allowedMerchants": [
+        "M001"
+      ],
+      "scriptsPolicy": "deny"
+    }
+  ]
+}

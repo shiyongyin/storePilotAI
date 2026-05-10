@@ -12,6 +12,7 @@
  *   - SIGTERM / SIGINT 必须 disposeMcpClient（避免连接泄漏）
  *   - 注入 X-Tenant-Key + X-Mcp-Protocol-Version + User-Agent header（服务间共享 secret 验证）
  *   - MCPClient 必须**单例**（避免每次工具调用都新建连接）
+ *   - MCPClient 顶层传稳定 id（Mastra 1.7.0 提供 MCPClientOptions.id，避免相同配置实例缓存误判）
  *
  * !! API drift（mastra 1.0 vs 任务卡 0.x 文本）!!
  *   - 原始 D-Mastra 示例 `connectTimeoutMs: 5_000` 写在顶层 MCPClientOptions；
@@ -89,6 +90,7 @@ export function getMcpClient(): MCPClient {
   if (_client) return _client;
   const env = getEnv();
   _client = new MCPClient({
+    id: 'storepilot-erp-mcp-client',
     servers: {
       [ERP_SERVER_KEY]: {
         url: new URL(env.ERP_MCP_SERVER_URL),

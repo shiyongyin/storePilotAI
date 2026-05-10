@@ -67,6 +67,11 @@ export type McpToolsFn = () => Promise<Record<string, unknown>>;
  */
 export type ModelPingFn = () => Promise<void>;
 
+export interface ExternalSkillsHealthSummary {
+  enabled: boolean;
+  count: number;
+}
+
 /**
  * Health 模块依赖注入容器。任一依赖未注入 → 该路由直接返回 503，绝不挂死或走默认网络调用。
  */
@@ -74,12 +79,14 @@ export interface HealthDeps {
   pool: HealthPool | null;
   mcpToolsFn: McpToolsFn | null;
   modelPingFn: ModelPingFn | null;
+  externalSkills: ExternalSkillsHealthSummary;
 }
 
 const deps: HealthDeps = {
   pool: null,
   mcpToolsFn: null,
   modelPingFn: null,
+  externalSkills: { enabled: false, count: 0 },
 };
 
 /**
@@ -92,6 +99,7 @@ export function setHealthDeps(partial: Partial<HealthDeps>): void {
   if (partial.pool !== undefined) deps.pool = partial.pool;
   if (partial.mcpToolsFn !== undefined) deps.mcpToolsFn = partial.mcpToolsFn;
   if (partial.modelPingFn !== undefined) deps.modelPingFn = partial.modelPingFn;
+  if (partial.externalSkills !== undefined) deps.externalSkills = partial.externalSkills;
 }
 
 /**
@@ -103,6 +111,7 @@ export function resetHealthDepsForTest(): void {
   deps.pool = null;
   deps.mcpToolsFn = null;
   deps.modelPingFn = null;
+  deps.externalSkills = { enabled: false, count: 0 };
 }
 
 /* ============================================================================
@@ -169,6 +178,18 @@ async function checkMcp(): Promise<McpCheckResult> {
   } catch (err) {
     return { ok: false, reason: err instanceof Error ? err.message : String(err) };
   }
+}
+
+function externalSkillsReadySummary(): {
+  enabled: boolean;
+  count: number;
+  status: 'ok' | 'disabled';
+} {
+  return {
+    enabled: deps.externalSkills.enabled,
+    count: deps.externalSkills.count,
+    status: deps.externalSkills.enabled ? 'ok' : 'disabled',
+  };
 }
 
 /* ============================================================================
@@ -286,6 +307,7 @@ health.get('/health/ready', async (c) => {
         status: 'DOWN',
         db: db.ok ? { status: 'UP' } : { status: 'DOWN', reason: db.reason },
         mcp: mcp.ok ? { status: 'UP' } : { status: 'DOWN', reason: mcp.reason },
+        externalSkills: externalSkillsReadySummary(),
       },
       503,
     );
@@ -294,6 +316,7 @@ health.get('/health/ready', async (c) => {
     status: 'UP',
     db: { status: 'UP', tables: db.tables },
     mcp: { status: 'UP', tools: mcp.tools },
+    externalSkills: externalSkillsReadySummary(),
   });
 });
 

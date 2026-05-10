@@ -41,4 +41,14 @@ describe('切片 06 — RuntimeContext / AgentRuntime 7 字段', () => {
     input.merchantId = 'M999';
     expect(ctx.get('merchantId')).toBe('M001');
   });
+
+  it('buildRuntimeContext 应跳过 undefined optional 字段', () => {
+    const ctx = buildRuntimeContext({
+      ...sample,
+      agentId: undefined,
+    } as unknown as AgentRuntime);
+
+    expect(ctx.get('agentId')).toBeUndefined();
+    expect(ctx.get('merchantId')).toBe('M001');
+  });
 });

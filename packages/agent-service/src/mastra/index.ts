@@ -5,8 +5,8 @@
  * 严格按 docs/任务卡/D-Mastra.md §T-MASTRA-01.5.1 + 切片 06 任务卡 §8.1 落地。
  *
  * 强约束（违反即拒收）:
- *   - 红线 1: @mastra/core / @mastra/mcp / @mastra/loggers 必须**同主版本** 1.0.x
- *     （已在 packages/agent-service/package.json 精确锁 1.0.0，无 ^）
+ *   - Mastra 依赖版本必须由 packages/agent-service/package.json 精确锁定（无 ^），
+ *     升级前需经任务卡确认并跑兼容回归。
  *   - 红线 3: **不传 memory**（V1 关闭 Mastra Memory；MySQL 是业务真相单源）
  *
  * !! API drift（mastra 1.0 vs 任务卡 0.x 文本）!!
@@ -27,9 +27,13 @@
  *     不再触发 DB 副作用（让单测 / dev:agent 在缺 DB 场景可控）。
  */
 import { Mastra } from '@mastra/core';
+import type { Agent } from '@mastra/core/agent';
 import { PinoLogger } from '@mastra/loggers';
 
-import { generalQa, intentRouter, requirementCollector } from './agents/index.js';
+import {
+  createAgentBundle,
+  type AgentBundle,
+} from './agents/index.js';
 // workflows barrel：5 个 Workflow 由切片 12/14/15/17 各自加导出；本切片仅占位 export {}
 import * as workflows from './workflows/index.js';
 
@@ -38,9 +42,10 @@ import * as workflows from './workflows/index.js';
  *
  * @returns 一个 Mastra 实例；`mastra.memory` **必须** 为 undefined（红线 3 验收）。
  */
-export function createMastra() {
+export function createMastra(options: { agents?: AgentBundle } = {}) {
+  const agents = options.agents ?? createAgentBundle();
   return new Mastra({
-    agents: { intentRouter, generalQa, requirementCollector },
+    agents: agents as unknown as Record<string, Agent>,
     // workflows barrel 当前空（占位 export {}）；下游切片往 barrel 加导出后自动生效
     workflows: { ...workflows },
     logger: new PinoLogger({ name: 'agent-service', level: 'info' }),

@@ -219,6 +219,7 @@ describe('api/health.ts — 5 路由（liveness / db / mcp / model / ready）', 
       setHealthDeps({
         pool,
         mcpToolsFn: () => Promise.resolve(fullToolset()),
+        externalSkills: { enabled: true, count: 2 },
       });
 
       const res = await health.request('/health/ready');
@@ -227,10 +228,31 @@ describe('api/health.ts — 5 路由（liveness / db / mcp / model / ready）', 
         status: string;
         db: { status: string };
         mcp: { status: string };
+        externalSkills: { enabled: boolean; count: number; status: string };
       };
       expect(body.status).toBe('UP');
       expect(body.db.status).toBe('UP');
       expect(body.mcp.status).toBe('UP');
+      expect(body.externalSkills).toEqual({ enabled: true, count: 2, status: 'ok' });
+    });
+
+    it('externalSkills disabled summary only exposes disabled status and count', async () => {
+      const pool = new FakePool();
+      setHealthDeps({
+        pool,
+        mcpToolsFn: () => Promise.resolve(fullToolset()),
+        externalSkills: { enabled: false, count: 0 },
+      });
+
+      const res = await health.request('/health/ready');
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as {
+        externalSkills: { enabled: boolean; count: number; status: string };
+      };
+      expect(body.externalSkills).toEqual({ enabled: false, count: 0, status: 'disabled' });
+      expect(JSON.stringify(body)).not.toContain('BASE_DIR');
+      expect(JSON.stringify(body)).not.toContain('MANIFEST_PATH');
+      expect(JSON.stringify(body)).not.toContain('skillMdSha256');
     });
 
     it('db DOWN → 503 + db.reason 透出，mcp UP 仍展示', async () => {

@@ -29,16 +29,19 @@ vi.mock('@mastra/mcp', () => {
     disconnectCalls: number;
     disconnectThrow: boolean;
     instanceCount: number;
+    constructorArgs: unknown[];
   } = {
     toolsets: { erp: {} },
     disconnectCalls: 0,
     disconnectThrow: false,
     instanceCount: 0,
+    constructorArgs: [],
   };
   class MCPClient {
     public readonly _instanceId: number;
-    constructor() {
+    constructor(args: unknown) {
       state.instanceCount += 1;
+      state.constructorArgs.push(args);
       this._instanceId = state.instanceCount;
     }
     listToolsets(): Promise<Record<string, ToolMap>> {
@@ -66,6 +69,7 @@ vi.mock('@mastra/mcp', () => {
       state.disconnectCalls = 0;
       state.disconnectThrow = false;
       state.instanceCount = 0;
+      state.constructorArgs = [];
     },
   };
 });
@@ -152,6 +156,23 @@ describe('切片 08 — getMcpClient 单例 (§9.10)', () => {
     getMcpClient();
     getMcpClient();
     expect(mock.__mcpClientMockState.instanceCount).toBe(1);
+  });
+
+  it('构造 MCPClient 时必须传稳定 id，避免新版相同配置实例缓存误判', async () => {
+    const { getMcpClient } = await import('./client.js');
+    const mock = (await import('@mastra/mcp')) as unknown as {
+      __mcpClientMockState: { constructorArgs: unknown[] };
+    };
+
+    getMcpClient();
+
+    expect(mock.__mcpClientMockState.constructorArgs).toHaveLength(1);
+    expect(mock.__mcpClientMockState.constructorArgs[0]).toEqual(
+      expect.objectContaining({
+        id: 'storepilot-erp-mcp-client',
+        servers: expect.any(Object),
+      }),
+    );
   });
 });
 

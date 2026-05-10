@@ -12,6 +12,18 @@ const BooleanStringSchema = z
   .default('true')
   .transform((v) => v === 'true');
 
+export const ExternalSkillMerchantIdSchema = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]{1,64}$/)
+  .refine((v) => v !== 'undefined' && v !== 'null');
+
+export const EXTERNAL_SKILLS_MAX_COUNT = 20;
+export const EXTERNAL_SKILLS_MAX_MANIFEST_BYTES = 64 * 1024;
+export const EXTERNAL_SKILL_MAX_FRONTMATTER_BYTES = 8 * 1024;
+export const EXTERNAL_SKILL_MAX_SKILL_MD_BYTES = 128 * 1024;
+export const EXTERNAL_SKILL_MAX_FILE_BYTES = 512 * 1024;
+export const EXTERNAL_SKILL_MAX_TOTAL_BYTES = 2 * 1024 * 1024;
+
 const EnvSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -56,11 +68,94 @@ const EnvSchema = z
      *   - `enabled`                        → 全量可用
      */
     GRAY_MERCHANT_WHITELIST: z.string().default(''),
+    EXTERNAL_SKILLS_ENABLED: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
+    EXTERNAL_SKILLS_BASE_DIR: z.string().default(''),
+    EXTERNAL_SKILLS_MANIFEST_PATH: z.string().default(''),
+    EXTERNAL_SKILLS_ALLOWED_SOURCES: z
+      .string()
+      .default('')
+      .transform((s, ctx) => {
+        const items = s
+          .split(',')
+          .map((part) => part.trim().toLowerCase())
+          .filter(Boolean);
+        for (const hostname of items) {
+          if (!/^[a-z0-9.-]{1,253}$/.test(hostname) || hostname.includes('*')) {
+            ctx.addIssue({
+              code: 'custom',
+              message: `非法 hostname: ${hostname}`,
+            });
+          }
+        }
+        return items as readonly string[];
+      }),
+    EXTERNAL_SKILLS_GRAY_MERCHANT_WHITELIST: z
+      .string()
+      .default('')
+      .transform((s, ctx) => {
+        const items = s
+          .split(',')
+          .map((part) => part.trim())
+          .filter(Boolean);
+        for (const merchantId of items) {
+          const result = ExternalSkillMerchantIdSchema.safeParse(merchantId);
+          if (!result.success) {
+            ctx.addIssue({
+              code: 'custom',
+              message: `非法 merchantId: ${merchantId}`,
+            });
+          }
+        }
+        return items as readonly string[];
+      }),
+    EXTERNAL_SKILLS_ALLOW_SCRIPTS: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
   })
   .refine((env) => env.NODE_ENV !== 'production' || env.NUMBER_CONSISTENCY_CHECK_ENABLED, {
     path: ['NUMBER_CONSISTENCY_CHECK_ENABLED'],
     message: '生产环境不能关闭数字一致性校验',
-  });
+  })
+  .refine((env) => !env.EXTERNAL_SKILLS_ENABLED || env.EXTERNAL_SKILLS_BASE_DIR.length > 0, {
+    path: ['EXTERNAL_SKILLS_BASE_DIR'],
+    message: 'EXTERNAL_SKILLS_ENABLED=true 时必须配置 EXTERNAL_SKILLS_BASE_DIR',
+  })
+  .refine((env) => !env.EXTERNAL_SKILLS_ENABLED || env.EXTERNAL_SKILLS_MANIFEST_PATH.length > 0, {
+    path: ['EXTERNAL_SKILLS_MANIFEST_PATH'],
+    message: 'EXTERNAL_SKILLS_ENABLED=true 时必须配置 EXTERNAL_SKILLS_MANIFEST_PATH',
+  })
+  .refine((env) => !env.EXTERNAL_SKILLS_ENABLED || env.EXTERNAL_SKILLS_ALLOWED_SOURCES.length > 0, {
+    path: ['EXTERNAL_SKILLS_ALLOWED_SOURCES'],
+    message: 'EXTERNAL_SKILLS_ENABLED=true 时必须配置 EXTERNAL_SKILLS_ALLOWED_SOURCES',
+  })
+  .refine(
+    (env) =>
+      env.EXTERNAL_SKILLS_BASE_DIR.length === 0 || env.EXTERNAL_SKILLS_BASE_DIR.startsWith('/'),
+    {
+      path: ['EXTERNAL_SKILLS_BASE_DIR'],
+      message: 'EXTERNAL_SKILLS_BASE_DIR 必须是绝对路径',
+    },
+  )
+  .refine(
+    (env) =>
+      env.EXTERNAL_SKILLS_MANIFEST_PATH.length === 0 ||
+      env.EXTERNAL_SKILLS_MANIFEST_PATH.startsWith('/'),
+    {
+      path: ['EXTERNAL_SKILLS_MANIFEST_PATH'],
+      message: 'EXTERNAL_SKILLS_MANIFEST_PATH 必须是绝对路径',
+    },
+  )
+  .refine(
+    (env) => env.NODE_ENV !== 'production' || env.EXTERNAL_SKILLS_ALLOW_SCRIPTS === false,
+    {
+      path: ['EXTERNAL_SKILLS_ALLOW_SCRIPTS'],
+      message: '生产环境禁止启用 EXTERNAL_SKILLS_ALLOW_SCRIPTS',
+    },
+  );
 
 export type Env = z.infer<typeof EnvSchema>;
 

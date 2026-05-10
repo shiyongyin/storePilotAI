@@ -10,14 +10,16 @@
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "vitest run --config vitest.e2e.config.ts"
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "verify-external-skills": "tsx scripts/verify-external-skills.ts",
+    "release:verify": "pnpm exec tsx scripts/verify-external-skills.ts && pnpm typecheck && pnpm test && pnpm test:e2e"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.0",
     "@hono/node-server": "^1.13.7",
-    "@mastra/core": "1.0.0",
-    "@mastra/loggers": "1.0.0",
-    "@mastra/mcp": "1.0.0",
+    "@mastra/core": "1.32.1",
+    "@mastra/loggers": "1.1.1",
+    "@mastra/mcp": "1.7.0",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/auto-instrumentations-node": "^0.55.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.55.0",
@@ -33,6 +35,7 @@
     "mysql2": "^3.11.0",
     "pino": "^9.4.0",
     "ulid": "^3.0.0",
+    "yaml": "2.8.4",
     "zod": "^4.0.0"
   },
   "devDependencies": {

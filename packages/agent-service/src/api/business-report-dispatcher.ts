@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { BizError, Intent, friendlyMessage } from '@storepilot/shared-contracts';
 
-import { generalQa, requirementCollector } from '../mastra/agents/index.js';
+import { generalQa, requirementCollector, type AgentBundle } from '../mastra/agents/index.js';
 import { classifyIntent } from '../mastra/agents/intent-classifier.js';
 import {
   INTENT_TO_SKILL,
@@ -87,8 +87,11 @@ interface MonthlyValueResult {
  */
 export function createBusinessReportDispatcher(args: {
   now?: () => Date;
+  agents?: Pick<AgentBundle, 'generalQa' | 'requirementCollector'>;
 } = {}): DispatchFn {
   const now = args.now ?? (() => new Date());
+  const activeGeneralQa = args.agents?.generalQa ?? generalQa;
+  const activeRequirementCollector = args.agents?.requirementCollector ?? requirementCollector;
 
   return async (dispatchArgs) => {
     const latestUserMessage = getLatestUserMessage(dispatchArgs.body.messages);
@@ -150,10 +153,10 @@ export function createBusinessReportDispatcher(args: {
 
       // ----- GENERAL_QA / EXPLAIN_METRIC：generalQa Agent 走 DeepSeek -----
       if (intent === Intent.GENERAL_QA || intent === Intent.EXPLAIN_METRIC) {
-        const ctx = buildCtx(dispatchArgs);
+        const ctx = buildCtx(dispatchArgs, 'generalQa');
         // mastra 1.0 generate options 期望 RequestContext<unknown>；项目 RuntimeContext<AgentRuntime>
         // 是其类型化别名，运行期等价。用 `as never` 绕开协变限制。
-        const r = (await generalQa.generate(latestUserMessage, {
+        const r = (await activeGeneralQa.generate(latestUserMessage, {
           requestContext: ctx as never,
         })) as { text?: string };
         return {
@@ -165,7 +168,7 @@ export function createBusinessReportDispatcher(args: {
       // ----- COLLECT_REQUIREMENT：requirementCollector 走 DeepSeek，V1 不写表 -----
       if (intent === Intent.COLLECT_REQUIREMENT) {
         const ctx = buildCtx(dispatchArgs);
-        const r = (await requirementCollector.generate(latestUserMessage, {
+        const r = (await activeRequirementCollector.generate(latestUserMessage, {
           requestContext: ctx as never,
         })) as { text?: string };
         return { finalText: r?.text ?? '已收到您的需求建议，我会发给运营团队评审。' };
@@ -297,7 +300,7 @@ export function createBusinessReportDispatcher(args: {
  * 辅助函数
  * ========================================================================== */
 
-function buildCtx(args: DispatchArgs) {
+function buildCtx(args: DispatchArgs, agentId?: string) {
   return buildRuntimeContext({
     traceId: args.traceId,
     sessionId: args.sessionId,
@@ -306,6 +309,7 @@ function buildCtx(args: DispatchArgs) {
     userId: args.auth.userId,
     apiKeyPrefix: args.auth.apiKeyPrefix,
     requestStartedAt: Date.now(),
+    ...(agentId === undefined ? {} : { agentId }),
   });
 }
 

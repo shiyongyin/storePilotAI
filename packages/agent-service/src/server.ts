@@ -39,6 +39,7 @@ import { createBusinessReportDispatcher } from './api/business-report-dispatcher
 import { health, setHealthDeps } from './api/health.js';
 import { setAuthPool } from './bridge/auth.js';
 import { getEnv } from './config/env.js';
+import { createAgentBundle } from './mastra/agents/index.js';
 import { classifyIntent } from './mastra/agents/intent-classifier.js';
 import { createMastra } from './mastra/index.js';
 import { getModel } from './mastra/llm-provider.js';
@@ -49,6 +50,8 @@ import {
   verifyMcpToolsAtStartup,
 } from './mastra/mcp/client.js';
 import { buildRuntimeContext } from './mastra/runtime-context.js';
+import { loadVerifiedExternalSkills } from './mastra/skills/external-skill-loader.js';
+import { createExternalSkillWorkspace } from './mastra/skills/external-skill-workspace.js';
 import { createMysqlStorage } from './mastra/storage/mysql-adapter.js';
 import {
   closeMysqlStoragePool,
@@ -184,16 +187,35 @@ async function bootstrap(): Promise<void> {
   const storage = createMysqlStorage({ env, pool: storagePool });
   await storage.init();
 
-  // 实例化 Mastra；红线 3：不传 memory（双保险：mysql-adapter saveMemory/loadMemory
-  // 抛 NOT_IMPLEMENTED_IN_V1）。createMastra 不再触发 storage 副作用（切片 07 上移）。
-  createMastra();
-
   // line 4: mcp-tools-verified —— 切片 08 主交付：严格 7 工具白名单校验
   await verifyMcpToolsAtStartup();
 
   // line 5: skill-def-verified（切片 21 落地：5 行 agent_skill_def 与 createMastra
   // workflows barrel 严格相等；缺一抛错 → process.exit(1)）。
   await verifySkillDef(storagePool);
+
+  const externalSkills = await loadVerifiedExternalSkills(env);
+  const externalSkillsWorkspace = createExternalSkillWorkspace(env, externalSkills);
+  logger.info(
+    {
+      enabled: env.EXTERNAL_SKILLS_ENABLED,
+      count: externalSkills.length,
+      skills: externalSkills.map((skill) => ({
+        name: skill.name,
+        version: skill.version,
+        skillMdSha256Prefix: skill.skillMdSha256.slice(0, 12),
+        filesCount: skill.fileHashes.size,
+      })),
+    },
+    '[startup] external-skills-verified',
+  );
+  const agents = createAgentBundle(
+    externalSkillsWorkspace === undefined ? {} : { externalSkillsWorkspace },
+  );
+
+  // 实例化 Mastra；红线 3：不传 memory（双保险：mysql-adapter saveMemory/loadMemory
+  // 抛 NOT_IMPLEMENTED_IN_V1）。createMastra 不再触发 storage 副作用（切片 07 上移）。
+  createMastra({ agents });
 
   // 切片 09 V2.1 补丁 — 注入 AuthPool；缺则 /v1/chat/completions 鉴权直接 401。
   // 复用 storagePool，全 workspace 共用同一个 mysql2 连接池。
@@ -236,6 +258,10 @@ async function bootstrap(): Promise<void> {
   setHealthDeps({
     pool: storagePool,
     mcpToolsFn: () => mcpTools(),
+    externalSkills: {
+      enabled: env.EXTERNAL_SKILLS_ENABLED,
+      count: externalSkills.length,
+    },
     modelPingFn: async () => {
       await generateText({
         model: getModel(),
@@ -273,7 +299,7 @@ async function bootstrap(): Promise<void> {
     }
     return {};
   });
-  setDispatcher(createBusinessReportDispatcher());
+  setDispatcher(createBusinessReportDispatcher({ agents }));
 
   const app = new Hono<ServerVars>();
 

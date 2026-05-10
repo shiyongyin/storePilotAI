@@ -4,6 +4,7 @@ import { Hono } from 'hono';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ApiKeyRow, AuthPool } from '../bridge/auth.js';
+import type { AgentBundle } from '../mastra/agents/index.js';
 import type { DispatchArgs } from './chat-completions.js';
 
 const TEST_API_KEY_HASH_SALT = 'salt-abcdef-1234';
@@ -29,6 +30,7 @@ for (const [key, value] of Object.entries(ENV_FIXTURE)) vi.stubEnv(key, value);
 vi.mock('../mastra/agents/index.js', () => ({
   generalQa: { generate: vi.fn() },
   requirementCollector: { generate: vi.fn() },
+  createAgentBundle: vi.fn(),
 }));
 
 vi.mock('../mastra/agents/intent-classifier.js', () => ({
@@ -124,6 +126,8 @@ const findRecentDraftMock = vi.mocked(findRecentDraft);
 interface RuntimeContextLike {
   get(key: string): unknown;
 }
+
+type DispatcherAgentsForTest = Pick<AgentBundle, 'generalQa' | 'requirementCollector'>;
 
 function expectTenantRuntimeContext(value: unknown): asserts value is RuntimeContextLike {
   expect(typeof value).toBe('object');
@@ -317,6 +321,61 @@ describe('business-report-dispatcher', () => {
     expect(result.finalText).toContain('total_sales: 1250');
     expect(result.finalText).toContain('## 数据源摘要');
     expect(result.finalText).toContain('queryStoreSalesSummary');
+  });
+
+  it('GENERAL_QA → 使用注入的 generalQa 并把 agentId=generalQa 写入 RuntimeContext', async () => {
+    classifyIntentMock.mockResolvedValue({
+      intent: Intent.GENERAL_QA,
+      confidence: 0.95,
+      reason: 'general',
+    });
+    const injectedGeneralQa = {
+      generate: vi.fn().mockResolvedValue({ text: '注入实例回答' }),
+    };
+    const defaultGeneralQa = await import('../mastra/agents/index.js').then((m) => m.generalQa);
+
+    const dispatcher = createBusinessReportDispatcher({
+      agents: {
+        generalQa: injectedGeneralQa,
+        requirementCollector: { generate: vi.fn() },
+      } as unknown as DispatcherAgentsForTest,
+    });
+    const result = await dispatcher(buildArgs('毛利率是什么意思'));
+
+    expect(result.finalText).toBe('注入实例回答');
+    expect(injectedGeneralQa.generate).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(defaultGeneralQa.generate)).not.toHaveBeenCalled();
+    const call = injectedGeneralQa.generate.mock.calls[0]?.[1] as {
+      requestContext: RuntimeContextLike;
+    };
+    expectTenantRuntimeContext(call.requestContext);
+    expect(call.requestContext.get('agentId')).toBe('generalQa');
+  });
+
+  it('COLLECT_REQUIREMENT → 使用注入的 requirementCollector 且不写入 agentId', async () => {
+    classifyIntentMock.mockResolvedValue({
+      intent: Intent.COLLECT_REQUIREMENT,
+      confidence: 0.95,
+      reason: 'requirement',
+    });
+    const injectedRequirementCollector = {
+      generate: vi.fn().mockResolvedValue({ text: '已收到' }),
+    };
+
+    const dispatcher = createBusinessReportDispatcher({
+      agents: {
+        generalQa: { generate: vi.fn() },
+        requirementCollector: injectedRequirementCollector,
+      } as unknown as DispatcherAgentsForTest,
+    });
+    const result = await dispatcher(buildArgs('我想要会员积分功能'));
+
+    expect(result.finalText).toBe('已收到');
+    const call = injectedRequirementCollector.generate.mock.calls[0]?.[1] as {
+      requestContext: RuntimeContextLike;
+    };
+    expectTenantRuntimeContext(call.requestContext);
+    expect(call.requestContext.get('agentId')).toBeUndefined();
   });
 
   it('BUSINESS_MONTHLY_REPORT → 并行执行 4 query step 后 compose，输出完整 markdown/cards/dataSourceSummary', async () => {

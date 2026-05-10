@@ -21,6 +21,7 @@ export interface AgentRuntime extends Record<string, unknown> {
   userId: string;
   apiKeyPrefix: string;
   requestStartedAt: number;
+  agentId?: string;
 }
 
 /**
@@ -34,6 +35,7 @@ export function buildRuntimeContext(input: AgentRuntime): RuntimeContext<AgentRu
   for (const [k, v] of Object.entries(input) as Array<
     [keyof AgentRuntime, AgentRuntime[keyof AgentRuntime]]
   >) {
+    if (v === undefined) continue;
     ctx.set(k, v as never);
   }
   return ctx;
