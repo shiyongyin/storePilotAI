@@ -26,6 +26,8 @@ import type { z } from 'zod';
 
 import { canonical, isAllowlistedConst, normalizeNumber } from './numbers.js';
 
+const ROUTE_PROTOCOL_TAG_RE = /<\s*\/?(ASK|FALLBACK)\s*>/i;
+
 /**
  * 单个 markdown 数字字面量的匹配正则(用于 String.prototype.match 的全局扫描)。
  *
@@ -92,6 +94,13 @@ export function checkNumberConsistency(md: string, allowed: Set<string>): void {
   const stripped = md
     .replace(/\d{4}-\d{2}-\d{2}/g, '<DATE>')
     .replace(/\d{1,2}:\d{2}/g, '<TIME>');
+
+  if (ROUTE_PROTOCOL_TAG_RE.test(stripped)) {
+    throw new BizError('PROMPT_INJECTION', 'Agent 输出包含伪造路由协议标签', {
+      meta: { fallbackReason: 'AGENT_OUTPUT_FORGED_TAG' },
+      httpStatus: 502,
+    });
+  }
 
   // 2) 派生白名单解析(MUST §46: ## 数据来源 派生白名单)
   expandDerivedAllowlist(stripped, allowed);

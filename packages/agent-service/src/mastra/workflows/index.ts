@@ -1,7 +1,7 @@
 /**
  * 切片 06 — workflows/ barrel 占位
  *
- * 5 个 Workflow 由各自切片完整化:
+ * V1 5 个 Workflow 由各自切片完整化:
  *   - business_daily_report   → 切片 12
  *   - business_monthly_report → 切片 12
  *   - replenishment_forecast  → 切片 14
@@ -9,7 +9,7 @@
  *   - purchase_order_create   → 切片 17（HITL）
  *
  * 本切片仅占位，让 createMastra() 中 `import * as workflows from './workflows/index.js'` 不报错。
- * 各下游切片在自己的文件里 `export const xxx = createWorkflow(...)` 加导出，本文件不再修改。
+ * V2 Phase1 额外注册 `marketing_growth_copilot` 轻量 workflow wrapper。
  *
  * !! 切片 17 — 采购单 HITL workflow 注册键约束 !!
  *   ConfirmManager（切片 16）调用 `mastra.getWorkflow('purchase_order_create').resume(...)`，
@@ -24,3 +24,4 @@ export {
   purchaseOrderCreate,
   purchaseOrderCreate as purchase_order_create,
 } from './purchase-order-create.js';
+export { marketingGrowthCopilotWorkflow, marketingGrowthCopilotWorkflow as marketing_growth_copilot } from './marketing-growth-copilot.js';

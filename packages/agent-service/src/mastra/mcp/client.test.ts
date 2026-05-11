@@ -7,7 +7,7 @@
  * 覆盖项：
  *   - TOOL_WHITELIST 与 shared-contracts/TOOL_NAMES **字典序严格相等**（守门 §7 MUST DO §1）
  *   - getMcpClient() 单例：多次返回同一引用（§7 MUST DO §8 / §9.10）
- *   - verifyMcpToolsAtStartup happy path：7 工具齐全 + schema 非空 → resolve 不抛
+ *   - verifyMcpToolsAtStartup happy path：16 工具齐全 + schema 非空 → resolve 不抛
  *   - verifyMcpToolsAtStartup missing：缺 createPurchaseOrder → 抛 McpWhitelistError(missing)
  *   - verifyMcpToolsAtStartup extra：多 executeSql → 抛 McpWhitelistError(extra)
  *   - verifyMcpToolsAtStartup schema 缺失：inputSchema undefined → 抛错并含工具名
@@ -119,10 +119,10 @@ function buildHappyToolset(): Record<string, ReturnType<typeof buildToolEntry>> 
 }
 
 describe('切片 08 — TOOL_WHITELIST 与 shared-contracts TOOL_NAMES 字典序严格相等', () => {
-  it('TOOL_WHITELIST.length === TOOL_NAMES.length === 7', async () => {
+  it('TOOL_WHITELIST.length === TOOL_NAMES.length === 16', async () => {
     const { TOOL_WHITELIST } = await import('./client.js');
-    expect(TOOL_WHITELIST.length).toBe(7);
-    expect(TOOL_NAMES.length).toBe(7);
+    expect(TOOL_WHITELIST.length).toBe(16);
+    expect(TOOL_NAMES.length).toBe(16);
   });
 
   it('JSON.stringify(TOOL_WHITELIST.sort()) === JSON.stringify([...TOOL_NAMES].sort())', async () => {
@@ -167,23 +167,38 @@ describe('切片 08 — getMcpClient 单例 (§9.10)', () => {
     getMcpClient();
 
     expect(mock.__mcpClientMockState.constructorArgs).toHaveLength(1);
-    expect(mock.__mcpClientMockState.constructorArgs[0]).toEqual(
-      expect.objectContaining({
-        id: 'storepilot-erp-mcp-client',
-        servers: expect.any(Object),
-      }),
-    );
+    const constructorArg: unknown = mock.__mcpClientMockState.constructorArgs[0];
+    expect(constructorArg).toEqual(expect.objectContaining({ id: 'storepilot-erp-mcp-client' }));
+    expect(typeof (constructorArg as { servers?: unknown }).servers).toBe('object');
+    expect((constructorArg as { servers?: unknown }).servers).not.toBeNull();
   });
 });
 
 describe('切片 08 — verifyMcpToolsAtStartup happy path (§9.2)', () => {
-  it('7 工具齐全 + schema 非空 → resolve 不抛', async () => {
+  it('16 工具齐全 + schema 非空 → resolve 不抛', async () => {
     const mod = await import('@mastra/mcp');
     (mod as unknown as {
       __setMockToolsets: (t: unknown) => void;
     }).__setMockToolsets({ erp: buildHappyToolset() });
 
-    const { verifyMcpToolsAtStartup } = await import('./client.js');
+    const { __setMcpToolSchemasForTest, verifyMcpToolsAtStartup } = await import('./client.js');
+    __setMcpToolSchemasForTest(async () => buildHappyToolset());
+
+    await expect(verifyMcpToolsAtStartup()).resolves.toBeUndefined();
+  });
+
+  it('Mastra 1.7 listToolsets 可不暴露 outputSchema，但原始 MCP tools/list schema 完整时仍通过', async () => {
+    const mastraToolsetWithoutOutputSchema: Record<string, { inputSchema: unknown }> = {};
+    for (const name of TOOL_NAMES) {
+      mastraToolsetWithoutOutputSchema[name] = { inputSchema: z.object({}) };
+    }
+    (await import('@mastra/mcp') as unknown as {
+      __setMockToolsets: (t: unknown) => void;
+    }).__setMockToolsets({ erp: mastraToolsetWithoutOutputSchema });
+
+    const { __setMcpToolSchemasForTest, verifyMcpToolsAtStartup } = await import('./client.js');
+    __setMcpToolSchemasForTest(async () => buildHappyToolset());
+
     await expect(verifyMcpToolsAtStartup()).resolves.toBeUndefined();
   });
 });
@@ -196,7 +211,9 @@ describe('切片 08 — verifyMcpToolsAtStartup 缺工具 (§9.4 / §10.2)', () 
       __setMockToolsets: (t: unknown) => void;
     }).__setMockToolsets({ erp: happy });
 
-    const { verifyMcpToolsAtStartup, McpWhitelistError } = await import('./client.js');
+    const { __setMcpToolSchemasForTest, verifyMcpToolsAtStartup, McpWhitelistError } = await import('./client.js');
+    __setMcpToolSchemasForTest(async () => happy);
+
     try {
       await verifyMcpToolsAtStartup();
       expect.fail('expected McpWhitelistError');
@@ -212,13 +229,15 @@ describe('切片 08 — verifyMcpToolsAtStartup 缺工具 (§9.4 / §10.2)', () 
 
 describe('切片 08 — verifyMcpToolsAtStartup 多工具 (§9.5 / §10.3)', () => {
   it('多 executeSql → 抛 McpWhitelistError + extra 含 executeSql', async () => {
-    const happy = buildHappyToolset() as Record<string, unknown>;
+    const happy = buildHappyToolset() as Record<string, ReturnType<typeof buildToolEntry>>;
     happy['executeSql'] = buildToolEntry();
     (await import('@mastra/mcp') as unknown as {
       __setMockToolsets: (t: unknown) => void;
     }).__setMockToolsets({ erp: happy });
 
-    const { verifyMcpToolsAtStartup, McpWhitelistError } = await import('./client.js');
+    const { __setMcpToolSchemasForTest, verifyMcpToolsAtStartup, McpWhitelistError } = await import('./client.js');
+    __setMcpToolSchemasForTest(async () => happy);
+
     try {
       await verifyMcpToolsAtStartup();
       expect.fail('expected McpWhitelistError');
@@ -243,7 +262,9 @@ describe('切片 08 — verifyMcpToolsAtStartup schema 缺失 (§9.6 / §10.4)',
       __setMockToolsets: (t: unknown) => void;
     }).__setMockToolsets({ erp: happy });
 
-    const { verifyMcpToolsAtStartup, McpWhitelistError } = await import('./client.js');
+    const { __setMcpToolSchemasForTest, verifyMcpToolsAtStartup, McpWhitelistError } = await import('./client.js');
+    __setMcpToolSchemasForTest(async () => happy);
+
     try {
       await verifyMcpToolsAtStartup();
       expect.fail('expected McpWhitelistError');
@@ -266,7 +287,9 @@ describe('切片 08 — verifyMcpToolsAtStartup schema 缺失 (§9.6 / §10.4)',
       __setMockToolsets: (t: unknown) => void;
     }).__setMockToolsets({ erp: happy });
 
-    const { verifyMcpToolsAtStartup, McpWhitelistError } = await import('./client.js');
+    const { __setMcpToolSchemasForTest, verifyMcpToolsAtStartup, McpWhitelistError } = await import('./client.js');
+    __setMcpToolSchemasForTest(async () => happy);
+
     await expect(verifyMcpToolsAtStartup()).rejects.toThrow(McpWhitelistError);
   });
 });

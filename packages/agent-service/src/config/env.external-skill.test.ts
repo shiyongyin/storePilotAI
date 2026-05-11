@@ -65,6 +65,15 @@ describe('external skills env schema', () => {
     ]);
     expect(env.EXTERNAL_SKILLS_GRAY_MERCHANT_WHITELIST).toEqual(['M001', 'merchant_02']);
     expect(env.EXTERNAL_SKILLS_ALLOW_SCRIPTS).toBe(false);
+    expect(env.MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS).toBe(1500);
+  });
+
+  it('parses MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS for live semantic routing smoke tests', () => {
+    stubBaseEnv({
+      MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS: '8000',
+    });
+
+    expect(getEnv().MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS).toBe(8000);
   });
 
   it('requires absolute base dir, absolute manifest path, and non-empty allowed sources when enabled', () => {

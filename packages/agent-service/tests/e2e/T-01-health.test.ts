@@ -5,7 +5,7 @@
  *   - GET /health             → 200 + status='UP'
  *   - GET /health/db          → 503 + status='DOWN'（pool 未注入；任务卡 §7 MUST DO §1 子项 b）
  *                               or 200 + status='UP'（pool + ≥ 11 表）
- *   - GET /health/mcp         → 200 + tools=7（in-process MCP mock；任务卡 §7 MUST DO §1 子项 c）
+ *   - GET /health/mcp         → 200 + tools=16（in-process MCP mock；任务卡 §7 MUST DO §1 子项 c）
  *   - GET /health/model       → 503 + status='DOWN'（modelPingFn 未注入；任务卡 §7 MUST DO §1 子项 d）
  *                               注意：本端到端测试不依赖真实 LLM 网关，仅冒烟接口形态
  *   - GET /health/ready       → 503 + status='DOWN'（db 未就绪；任务卡 §7 MUST DO §2）
@@ -75,11 +75,11 @@ describe('T-01 健康检查（任务卡 §8.1 §T-01；切片 20 扩到 5 接口
     expect(body.reason).toContain('pool not injected');
   });
 
-  it('GET /health/mcp → 200 + tools 数组含 7 个（in-process MCP mock；DI mcpToolsFn）', async () => {
+  it('GET /health/mcp → 200 + tools 数组含 16 个（in-process MCP mock；DI mcpToolsFn）', async () => {
     logCommand(
       'T-01.c',
       'curl http://localhost:7100/health/mcp',
-      'status=200, tools.length=7',
+      'status=200, tools.length=16',
     );
     const { mcpTools } = await import('../../src/mastra/mcp/client.js');
     setHealthDeps({ mcpToolsFn: () => mcpTools() });
@@ -91,8 +91,8 @@ describe('T-01 健康检查（任务卡 §8.1 §T-01；切片 20 扩到 5 接口
       whitelist: ToolName[];
     };
     expect(body.status).toBe('UP');
-    expect(body.tools.length).toBe(7);
-    expect(body.whitelist.length).toBe(7);
+    expect(body.tools.length).toBe(16);
+    expect(body.whitelist.length).toBe(16);
   });
 
   it('GET /health/model → 503 + reason="model ping not injected"（任务卡 §7 MUST NOT §4：不进 readiness）', async () => {

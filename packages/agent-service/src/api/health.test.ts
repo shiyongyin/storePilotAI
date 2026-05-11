@@ -143,7 +143,7 @@ describe('api/health.ts — 5 路由（liveness / db / mcp / model / ready）', 
   });
 
   describe('/health/mcp', () => {
-    it('mcpToolsFn 注入 + 7 工具齐全 → 200 UP + tools[7]', async () => {
+    it('mcpToolsFn 注入 + 16 工具齐全 → 200 UP + tools[16]', async () => {
       setHealthDeps({ mcpToolsFn: () => Promise.resolve(fullToolset()) });
 
       const res = await health.request('/health/mcp');
@@ -154,7 +154,7 @@ describe('api/health.ts — 5 路由（liveness / db / mcp / model / ready）', 
         whitelist: string[];
       };
       expect(body.status).toBe('UP');
-      expect(body.tools).toHaveLength(7);
+      expect(body.tools).toHaveLength(16);
       expect(body.whitelist).toEqual([...TOOL_WHITELIST].sort());
     });
 

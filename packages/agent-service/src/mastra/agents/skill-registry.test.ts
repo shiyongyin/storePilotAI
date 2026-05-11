@@ -2,8 +2,8 @@
  * 切片 21 — skill-registry 单测
  *
  * 覆盖：
- *   - collectWorkflowIds：从 createMastra workflows barrel 导出 5 个唯一 id（去重 alias）
- *   - loadSkillRegistryFromDb：5 行齐 → 通过；缺一 / 多一 / required disabled → 抛错
+ *   - collectWorkflowIds：从 createMastra workflows barrel 导出唯一 id（去重 alias）
+ *   - loadSkillRegistryFromDb：V1 5 个 + V2 marketing_growth_copilot 齐 → 通过；缺一 / 多一 / required disabled → 抛错
  *   - assertSkillUsable：disabled / gray + 名外 / gray + 命中 / enabled 4 类
  *
  * 用 FakePool 隔离 mysql2，env 通过 vi.stubEnv 注入 `GRAY_MERCHANT_WHITELIST`，
@@ -58,9 +58,10 @@ const ENV_FIXTURE: Record<string, string> = {
   GRAY_MERCHANT_WHITELIST: '',
 };
 
-const FIVE_REQUIRED_SKILLS = [
+const REQUIRED_SKILLS = [
   'business_daily_report',
   'business_monthly_report',
+  'marketing_growth_copilot',
   'purchase_order_create',
   'replenishment_adjustment',
   'replenishment_forecast',
@@ -91,6 +92,7 @@ function buildHappyRows(): Array<{
   return [
     { skill_code: 'business_daily_report', status: 'enabled', risk_level: 'LOW', version: '1.0.0' },
     { skill_code: 'business_monthly_report', status: 'enabled', risk_level: 'LOW', version: '1.0.0' },
+    { skill_code: 'marketing_growth_copilot', status: 'gray', risk_level: 'MEDIUM', version: '1.0.0' },
     { skill_code: 'replenishment_forecast', status: 'enabled', risk_level: 'MEDIUM', version: '1.0.0' },
     { skill_code: 'replenishment_adjustment', status: 'enabled', risk_level: 'MEDIUM', version: '1.0.0' },
     { skill_code: 'purchase_order_create', status: 'gray', risk_level: 'HIGH', version: '1.0.0' },
@@ -111,19 +113,19 @@ afterEach(() => {
 
 describe('skill-registry', () => {
   describe('collectWorkflowIds', () => {
-    it('从 createMastra workflows barrel 拿到 5 个唯一 id（去重 snake_case 别名）', () => {
+    it('从 createMastra workflows barrel 拿到唯一 id（去重 snake_case 别名）', () => {
       const ids = collectWorkflowIds();
-      expect(ids).toEqual([...FIVE_REQUIRED_SKILLS]);
+      expect(ids).toEqual([...REQUIRED_SKILLS]);
     });
   });
 
   describe('loadSkillRegistryFromDb — happy path', () => {
-    it('5 行齐 → 通过；返回 SkillRegistry 含 5 个 skillCode', async () => {
+    it('V1 5 个 + V2 marketing_growth_copilot 齐 → 通过', async () => {
       const pool = new FakePool();
       pool.rows = buildHappyRows();
 
       const registry = await loadSkillRegistryFromDb(pool as unknown as MysqlStoragePool);
-      expect(registry.list()).toEqual([...FIVE_REQUIRED_SKILLS]);
+      expect(registry.list()).toEqual([...REQUIRED_SKILLS]);
       expect(registry.get('purchase_order_create')).toMatchObject({
         skillCode: 'purchase_order_create',
         status: 'gray',
@@ -248,7 +250,13 @@ describe('skill-registry', () => {
       );
       expect(INTENT_TO_SKILL).not.toHaveProperty('CANCEL_REPLENISHMENT_DRAFT');
       const targets = new Set(Object.values(INTENT_TO_SKILL));
-      expect([...targets].sort()).toEqual([...FIVE_REQUIRED_SKILLS]);
+      expect([...targets].sort()).toEqual([
+        'business_daily_report',
+        'business_monthly_report',
+        'purchase_order_create',
+        'replenishment_adjustment',
+        'replenishment_forecast',
+      ]);
     });
   });
 });

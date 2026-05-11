@@ -34,7 +34,7 @@ import {
   createAgentBundle,
   type AgentBundle,
 } from './agents/index.js';
-// workflows barrel：5 个 Workflow 由切片 12/14/15/17 各自加导出；本切片仅占位 export {}
+// workflows barrel：V1 5 个 Workflow + V2 marketing_growth_copilot 轻量 wrapper。
 import * as workflows from './workflows/index.js';
 
 /**

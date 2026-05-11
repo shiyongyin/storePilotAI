@@ -23,12 +23,15 @@ const ENV_FIXTURE: Record<string, string> = {
   AGENT_API_KEY_HASH_SALT: TEST_API_KEY_HASH_SALT,
   AGENT_API_KEY_PREFIX: 'sk-agent-',
   CORS_ALLOWED_ORIGINS: 'http://localhost:3210',
+  MARKETING_AGENT_ENABLED: 'false',
+  MARKETING_AGENT_ENABLED_STORE_WHITELIST: '',
 };
 
 for (const [key, value] of Object.entries(ENV_FIXTURE)) vi.stubEnv(key, value);
 
 vi.mock('../mastra/agents/index.js', () => ({
   generalQa: { generate: vi.fn() },
+  marketingGrowthCopilot: { generate: vi.fn() },
   requirementCollector: { generate: vi.fn() },
   createAgentBundle: vi.fn(),
 }));
@@ -36,6 +39,14 @@ vi.mock('../mastra/agents/index.js', () => ({
 vi.mock('../mastra/agents/intent-classifier.js', () => ({
   classifyIntent: vi.fn(),
 }));
+
+vi.mock('./marketing-scope-classifier.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./marketing-scope-classifier.js')>();
+  return {
+    ...actual,
+    classifyMarketingScope: vi.fn(actual.classifyMarketingScope),
+  };
+});
 
 vi.mock('../mastra/workflows/business-daily-report.js', () => ({
   generateDailyReportStep: { execute: vi.fn() },
@@ -72,6 +83,7 @@ vi.mock('../safety/draft-manager.js', () => ({
 }));
 
 const { classifyIntent } = await import('../mastra/agents/intent-classifier.js');
+const { classifyMarketingScope } = await import('./marketing-scope-classifier.js');
 const { generateDailyReportStep } = await import('../mastra/workflows/business-daily-report.js');
 const {
   prepareMonthlyInputStep,
@@ -106,6 +118,7 @@ const {
 const { setSkillRegistry } = await import('../mastra/agents/skill-registry.js');
 
 const classifyIntentMock = vi.mocked(classifyIntent);
+const classifyMarketingScopeMock = vi.mocked(classifyMarketingScope);
 const dailyExecuteMock = vi.mocked(generateDailyReportStep.execute);
 const prepareMonthlyMock = vi.mocked(prepareMonthlyInputStep.execute);
 const querySalesMock = vi.mocked(querySalesStep.execute);
@@ -127,7 +140,7 @@ interface RuntimeContextLike {
   get(key: string): unknown;
 }
 
-type DispatcherAgentsForTest = Pick<AgentBundle, 'generalQa' | 'requirementCollector'>;
+type DispatcherAgentsForTest = Pick<AgentBundle, 'generalQa' | 'marketingGrowthCopilot' | 'requirementCollector'>;
 
 function expectTenantRuntimeContext(value: unknown): asserts value is RuntimeContextLike {
   expect(typeof value).toBe('object');
@@ -295,11 +308,6 @@ describe('business-report-dispatcher', () => {
   });
 
   it('BUSINESS_DAILY_REPORT → 调日报 step，并把 markdown/cards/dataSourceSummary 写入 finalText', async () => {
-    classifyIntentMock.mockResolvedValue({
-      intent: Intent.BUSINESS_DAILY_REPORT,
-      confidence: 0.95,
-      reason: 'daily',
-    });
     dailyExecuteMock.mockResolvedValue({
       reportType: 'DAILY',
       summaryMarkdown: '# 2026-05-07 经营日报\n\n销售额 1250 元。\n\n## 数据来源',
@@ -311,7 +319,7 @@ describe('business-report-dispatcher', () => {
     const dispatcher = createBusinessReportDispatcher({
       now: () => new Date('2026-05-07T01:00:00.000Z'),
     });
-    const result = await dispatcher(buildArgs('今天 S001 卖得怎么样'));
+    const result = await dispatcher(buildArgs('生成今天经营日报'));
 
     expect(dailyExecuteMock).toHaveBeenCalledWith({
       inputData: { merchantId: 'M001', storeId: 'S001', date: '2026-05-07' },
@@ -337,6 +345,7 @@ describe('business-report-dispatcher', () => {
     const dispatcher = createBusinessReportDispatcher({
       agents: {
         generalQa: injectedGeneralQa,
+        marketingGrowthCopilot: { generate: vi.fn() },
         requirementCollector: { generate: vi.fn() },
       } as unknown as DispatcherAgentsForTest,
     });
@@ -344,7 +353,7 @@ describe('business-report-dispatcher', () => {
 
     expect(result.finalText).toBe('注入实例回答');
     expect(injectedGeneralQa.generate).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(defaultGeneralQa.generate)).not.toHaveBeenCalled();
+    expect(vi.mocked(defaultGeneralQa).generate.mock.calls).toHaveLength(0);
     const call = injectedGeneralQa.generate.mock.calls[0]?.[1] as {
       requestContext: RuntimeContextLike;
     };
@@ -352,38 +361,266 @@ describe('business-report-dispatcher', () => {
     expect(call.requestContext.get('agentId')).toBe('generalQa');
   });
 
-  it('COLLECT_REQUIREMENT → 使用注入的 requirementCollector 且不写入 agentId', async () => {
-    classifyIntentMock.mockResolvedValue({
-      intent: Intent.COLLECT_REQUIREMENT,
-      confidence: 0.95,
-      reason: 'requirement',
-    });
-    const injectedRequirementCollector = {
-      generate: vi.fn().mockResolvedValue({ text: '已收到' }),
+  it('MARKETING_AGENT_ENABLED=false → 非显式输入不进入 marketingGrowthCopilot，仍走 V1 generalQa', async () => {
+    const injectedGeneralQa = {
+      generate: vi.fn().mockResolvedValue({ text: 'V1 通用问答兜底' }),
+    };
+    const injectedMarketing = {
+      generate: vi.fn().mockResolvedValue({ text: '不应调用' }),
     };
 
     const dispatcher = createBusinessReportDispatcher({
       agents: {
+        generalQa: injectedGeneralQa,
+        marketingGrowthCopilot: injectedMarketing,
+        requirementCollector: { generate: vi.fn() },
+      } as unknown as DispatcherAgentsForTest,
+    });
+    const result = await dispatcher(buildArgs('帮我看看有没有什么营销机会'));
+
+    expect(result.finalText).toBe('V1 通用问答兜底');
+    expect(injectedGeneralQa.generate).toHaveBeenCalledTimes(1);
+    expect(injectedMarketing.generate).not.toHaveBeenCalled();
+    expect(classifyMarketingScopeMock).not.toHaveBeenCalled();
+    expect(classifyIntentMock).not.toHaveBeenCalled();
+  });
+
+  it('灰度开启时显式 V1 日报指令优先走日报 workflow，不被 marketingGrowthCopilot 抢占', async () => {
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'true');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', 'S001');
+    const { resetEnvForTest } = await import('../config/env.js');
+    resetEnvForTest();
+    dailyExecuteMock.mockResolvedValue({
+      reportType: 'DAILY',
+      summaryMarkdown: '# 2026-05-07 经营日报\n\n销售额 1250 元。\n\n## 数据来源',
+      cards: [],
+      abnormalInsights: [],
+      dataSourceSummary: { tools: ['queryStoreSalesSummary'], elapsedMs: 12, missing: [] },
+    });
+    const injectedMarketing = {
+      generate: vi.fn().mockResolvedValue({ text: '不应调用' }),
+    };
+
+    const dispatcher = createBusinessReportDispatcher({
+      now: () => new Date('2026-05-07T01:00:00.000Z'),
+      agents: {
         generalQa: { generate: vi.fn() },
-        requirementCollector: injectedRequirementCollector,
+        marketingGrowthCopilot: injectedMarketing,
+        requirementCollector: { generate: vi.fn() },
+      } as unknown as DispatcherAgentsForTest,
+    });
+    const result = await dispatcher(buildArgs('生成经营日报'));
+
+    expect(result.finalText).toContain('# 2026-05-07 经营日报');
+    expect(dailyExecuteMock).toHaveBeenCalledTimes(1);
+    expect(injectedMarketing.generate).not.toHaveBeenCalled();
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'false');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', '');
+    resetEnvForTest();
+  });
+
+  it('灰度开启且 V2_IN_SCOPE → 调 scope classifier 后进入 marketingGrowthCopilot', async () => {
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'true');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', 'S001');
+    const { resetEnvForTest } = await import('../config/env.js');
+    resetEnvForTest();
+    classifyMarketingScopeMock.mockResolvedValue({
+      scope: 'V2_IN_SCOPE',
+      confidence: 0.92,
+      candidates: ['US-003'],
+      degraded: false,
+    });
+    const injectedMarketing = {
+      generate: vi.fn().mockResolvedValue({
+        text: '沉睡会员建议\n<!-- card_data:start -->{"cardType":"member_wakeup_list_card"}<!-- card_data:end -->',
+      }),
+    };
+    const injectedGeneralQa = {
+      generate: vi.fn().mockResolvedValue({ text: '不应调用' }),
+    };
+
+    const dispatcher = createBusinessReportDispatcher({
+      agents: {
+        generalQa: injectedGeneralQa,
+        marketingGrowthCopilot: injectedMarketing,
+        requirementCollector: { generate: vi.fn() },
+      } as unknown as DispatcherAgentsForTest,
+    });
+    const result = await dispatcher(buildArgs('沉睡会员'));
+
+    expect(classifyMarketingScopeMock).toHaveBeenCalledWith('沉睡会员');
+    expect(injectedMarketing.generate).toHaveBeenCalledTimes(1);
+    expect(result.finalText).toContain('member_wakeup_list_card');
+    expect(injectedGeneralQa.generate).not.toHaveBeenCalled();
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'false');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', '');
+    resetEnvForTest();
+  });
+
+  it('灰度开启且自然语言符合阶段 2 场景 → 必须由 scope classifier 判定后进入 marketingGrowthCopilot', async () => {
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'true');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', 'S001');
+    const { resetEnvForTest } = await import('../config/env.js');
+    resetEnvForTest();
+    classifyMarketingScopeMock.mockResolvedValue({
+      scope: 'V2_IN_SCOPE',
+      confidence: 0.91,
+      candidates: ['US-003'],
+      degraded: false,
+    });
+    const injectedMarketing = {
+      generate: vi.fn().mockResolvedValue({
+        text: '沉睡会员建议\n<!-- card_data:start -->{"cardType":"member_wakeup_list_card"}<!-- card_data:end -->',
+      }),
+    };
+    const injectedGeneralQa = {
+      generate: vi.fn().mockResolvedValue({ text: '不应调用' }),
+    };
+
+    const dispatcher = createBusinessReportDispatcher({
+      agents: {
+        generalQa: injectedGeneralQa,
+        marketingGrowthCopilot: injectedMarketing,
+        requirementCollector: { generate: vi.fn() },
+      } as unknown as DispatcherAgentsForTest,
+    });
+    const message = '最近有些老客都不来了，帮我看下该联系谁';
+    const result = await dispatcher(buildArgs(message));
+
+    expect(classifyMarketingScopeMock).toHaveBeenCalledWith(message);
+    expect(injectedMarketing.generate.mock.calls[0]?.[0]).toBe(message);
+    const marketingOptions = injectedMarketing.generate.mock.calls[0]?.[1] as { stopWhen?: unknown };
+    expect(typeof marketingOptions.stopWhen).toBe('function');
+    expect(result.finalText).toContain('member_wakeup_list_card');
+    expect(injectedGeneralQa.generate).not.toHaveBeenCalled();
+    expect(classifyIntentMock).not.toHaveBeenCalled();
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'false');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', '');
+    resetEnvForTest();
+  });
+
+  it('灰度开启且 AMBIGUOUS → 返回枚举候选澄清选项，不进入 Agent', async () => {
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'true');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', 'S001');
+    const { resetEnvForTest } = await import('../config/env.js');
+    resetEnvForTest();
+    classifyMarketingScopeMock.mockResolvedValue({
+      scope: 'AMBIGUOUS',
+      confidence: 0.45,
+      candidates: ['US-013', 'US-012'],
+      degraded: false,
+    });
+    const injectedMarketing = { generate: vi.fn() };
+
+    const dispatcher = createBusinessReportDispatcher({
+      agents: {
+        generalQa: { generate: vi.fn() },
+        marketingGrowthCopilot: injectedMarketing,
+        requirementCollector: { generate: vi.fn() },
+      } as unknown as DispatcherAgentsForTest,
+    });
+    const result = await dispatcher(buildArgs('搞个活动'));
+
+    expect(result.finalText).toContain('请确认您想问的方向');
+    expect(result.finalText).toContain('让我设计一个活动方案');
+    expect(result.finalText).toContain('节令/生日活动建议');
+    expect(result.finalText).not.toContain('merchantId');
+    expect(injectedMarketing.generate).not.toHaveBeenCalled();
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'false');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', '');
+    resetEnvForTest();
+  });
+
+  it('灰度开启且 AMBIGUOUS 但无 candidates → 回落 generalQa，不返回营销澄清', async () => {
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'true');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', 'S001');
+    const { resetEnvForTest } = await import('../config/env.js');
+    resetEnvForTest();
+    classifyMarketingScopeMock.mockResolvedValue({
+      scope: 'AMBIGUOUS',
+      confidence: 0.4,
+      candidates: [],
+      degraded: false,
+    });
+    const injectedGeneralQa = {
+      generate: vi.fn().mockResolvedValue({ text: '我是门店助手' }),
+    };
+    const injectedMarketing = { generate: vi.fn() };
+
+    const dispatcher = createBusinessReportDispatcher({
+      agents: {
+        generalQa: injectedGeneralQa,
+        marketingGrowthCopilot: injectedMarketing,
+        requirementCollector: { generate: vi.fn() },
+      } as unknown as DispatcherAgentsForTest,
+    });
+    const result = await dispatcher(buildArgs('你是谁，能做什么？'));
+
+    expect(result.finalText).toBe('我是门店助手');
+    expect(result.finalText).not.toContain('请确认您想问的方向');
+    expect(injectedGeneralQa.generate).toHaveBeenCalledTimes(1);
+    expect(injectedMarketing.generate).not.toHaveBeenCalled();
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'false');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', '');
+    resetEnvForTest();
+  });
+
+  it('灰度开启且 OUT_OF_SCOPE → 走 V1 generalQa 兜底', async () => {
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'true');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', 'S001');
+    const { resetEnvForTest } = await import('../config/env.js');
+    resetEnvForTest();
+    classifyMarketingScopeMock.mockResolvedValue({
+      scope: 'OUT_OF_SCOPE',
+      confidence: 0.93,
+      degraded: false,
+    });
+    const injectedGeneralQa = {
+      generate: vi.fn().mockResolvedValue({ text: 'V1 通用问答' }),
+    };
+    const injectedMarketing = { generate: vi.fn() };
+
+    const dispatcher = createBusinessReportDispatcher({
+      agents: {
+        generalQa: injectedGeneralQa,
+        marketingGrowthCopilot: injectedMarketing,
+        requirementCollector: { generate: vi.fn() },
+      } as unknown as DispatcherAgentsForTest,
+    });
+    const result = await dispatcher(buildArgs('今天天气怎么样'));
+
+    expect(result.finalText).toBe('V1 通用问答');
+    expect(injectedGeneralQa.generate).toHaveBeenCalledTimes(1);
+    expect(injectedMarketing.generate).not.toHaveBeenCalled();
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'false');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', '');
+    resetEnvForTest();
+  });
+
+  it('非显式需求收集 → 不再走旧 V1 LLM intent，回落 generalQa', async () => {
+    const injectedGeneralQa = {
+      generate: vi.fn().mockResolvedValue({ text: '请补充一下您想新增的经营能力。' }),
+    };
+
+    const dispatcher = createBusinessReportDispatcher({
+      agents: {
+        generalQa: injectedGeneralQa,
+        marketingGrowthCopilot: { generate: vi.fn() },
+        requirementCollector: { generate: vi.fn() },
       } as unknown as DispatcherAgentsForTest,
     });
     const result = await dispatcher(buildArgs('我想要会员积分功能'));
 
-    expect(result.finalText).toBe('已收到');
-    const call = injectedRequirementCollector.generate.mock.calls[0]?.[1] as {
+    expect(result.finalText).toBe('请补充一下您想新增的经营能力。');
+    const call = injectedGeneralQa.generate.mock.calls[0]?.[1] as {
       requestContext: RuntimeContextLike;
     };
     expectTenantRuntimeContext(call.requestContext);
-    expect(call.requestContext.get('agentId')).toBeUndefined();
+    expect(call.requestContext.get('agentId')).toBe('generalQa');
+    expect(classifyIntentMock).not.toHaveBeenCalled();
   });
 
   it('BUSINESS_MONTHLY_REPORT → 并行执行 4 query step 后 compose，输出完整 markdown/cards/dataSourceSummary', async () => {
-    classifyIntentMock.mockResolvedValue({
-      intent: Intent.BUSINESS_MONTHLY_REPORT,
-      confidence: 0.95,
-      reason: 'monthly',
-    });
     const prepared = {
       merchantId: 'M001',
       storeId: 'S001',
@@ -415,7 +652,7 @@ describe('business-report-dispatcher', () => {
     const dispatcher = createBusinessReportDispatcher({
       now: () => new Date('2026-05-07T01:00:00.000Z'),
     });
-    const result = await dispatcher(buildArgs('看一下本月月报'));
+    const result = await dispatcher(buildArgs('生成本月经营月报'));
 
     expect(prepareMonthlyMock).toHaveBeenCalledWith({
       inputData: { merchantId: 'M001', storeId: 'S001', month: '2026-05' },
@@ -443,11 +680,6 @@ describe('business-report-dispatcher', () => {
   });
 
   it('REPLENISHMENT_PLAN → 接通切片 14 compute/persist workflow，并用 RuntimeContext 生成草稿', async () => {
-    classifyIntentMock.mockResolvedValue({
-      intent: Intent.REPLENISHMENT_PLAN,
-      confidence: 0.95,
-      reason: 'replenishment',
-    });
     const computed = {
       items: [{ skuId: 'SKU_WATER', finalSuggestQty: 48, reason: '近 7 日均销 5' }],
       strategyVersion: 'M0-S0-P1',
@@ -470,7 +702,7 @@ describe('business-report-dispatcher', () => {
     });
 
     const dispatcher = createBusinessReportDispatcher();
-    const result = await dispatcher(buildArgs('算一份 7 天补货'));
+    const result = await dispatcher(buildArgs('生成 7 天补货建议'));
 
     expect(replenishmentComputeMock).toHaveBeenCalledWith({
       inputData: { merchantId: 'M001', storeId: 'S001', forecastDays: 7 },
@@ -487,11 +719,6 @@ describe('business-report-dispatcher', () => {
   });
 
   it('CONFIRM_CREATE_PURCHASE_ORDER → 找到最近草稿后调用 ConfirmManager.confirmDraft resume HITL', async () => {
-    classifyIntentMock.mockResolvedValue({
-      intent: Intent.CONFIRM_CREATE_PURCHASE_ORDER,
-      confidence: 0.95,
-      reason: 'confirm-po',
-    });
     findRecentDraftMock.mockResolvedValue([
       {
         draftId: 'drf_confirm_aaaaaaaaaaaa',
@@ -530,11 +757,6 @@ describe('business-report-dispatcher', () => {
   });
 
   it('CONFIRM_CREATE_PURCHASE_ORDER → 无 active run 时返回 purchase_order_create preview/suspend 预览', async () => {
-    classifyIntentMock.mockResolvedValue({
-      intent: Intent.CONFIRM_CREATE_PURCHASE_ORDER,
-      confidence: 0.95,
-      reason: 'confirm-po',
-    });
     findRecentDraftMock.mockResolvedValue([
       {
         draftId: 'drf_preview_aaaaaaaaaaaa',
@@ -568,15 +790,10 @@ describe('business-report-dispatcher', () => {
   });
 
   it('CANCEL_REPLENISHMENT_DRAFT → 调 ConfirmManager.cancelInflight(USER_CANCEL)', async () => {
-    classifyIntentMock.mockResolvedValue({
-      intent: Intent.CANCEL_REPLENISHMENT_DRAFT,
-      confidence: 0.95,
-      reason: 'cancel',
-    });
     cancelInflightMock.mockResolvedValue(undefined);
 
     const dispatcher = createBusinessReportDispatcher();
-    const result = await dispatcher(buildArgs('取消'));
+    const result = await dispatcher(buildArgs('取消草稿'));
 
     expect(cancelInflightMock).toHaveBeenCalledWith({
       sessionId: 'sess_01HZ000000000000000000',
@@ -599,15 +816,10 @@ describe('business-report-dispatcher', () => {
         },
       ]),
     );
-    classifyIntentMock.mockResolvedValue({
-      intent: Intent.CANCEL_REPLENISHMENT_DRAFT,
-      confidence: 0.95,
-      reason: 'cancel',
-    });
     cancelInflightMock.mockResolvedValue(undefined);
 
     const dispatcher = createBusinessReportDispatcher();
-    const result = await dispatcher(buildArgs('取消'));
+    const result = await dispatcher(buildArgs('取消草稿'));
 
     expect(cancelInflightMock).toHaveBeenCalledWith({
       sessionId: 'sess_01HZ000000000000000000',
@@ -619,11 +831,6 @@ describe('business-report-dispatcher', () => {
   });
 
   it('ADJUST_REPLENISHMENT_DRAFT → 串接切片 15 调整 workflow steps 并返回调整 markdown', async () => {
-    classifyIntentMock.mockResolvedValue({
-      intent: Intent.ADJUST_REPLENISHMENT_DRAFT,
-      confidence: 0.95,
-      reason: 'adjust',
-    });
     const loaded = {
       draftId: 'drf_01',
       status: 'DRAFT',
@@ -657,12 +864,12 @@ describe('business-report-dispatcher', () => {
     });
 
     const dispatcher = createBusinessReportDispatcher();
-    const result = await dispatcher(buildArgs('调整矿泉水上调 20%'));
+    const result = await dispatcher(buildArgs('调整补货，把矿泉水加 20%'));
 
     expect(adjustmentLoadMock).toHaveBeenCalledWith({
       inputData: {
         sessionId: 'sess_01HZ000000000000000000',
-        userMessage: '调整矿泉水上调 20%',
+        userMessage: '调整补货，把矿泉水加 20%',
       },
       requestContext: expect.any(Object) as unknown,
     });
@@ -696,11 +903,6 @@ describe('business-report-dispatcher', () => {
     const pool = new FakeAuthPool();
     setAuthPool(pool);
     await seedValidKey(pool);
-    classifyIntentMock.mockResolvedValue({
-      intent: Intent.BUSINESS_DAILY_REPORT,
-      confidence: 0.95,
-      reason: 'daily',
-    });
     dailyExecuteMock.mockResolvedValue({
       reportType: 'DAILY',
       summaryMarkdown: '# 2026-05-07 经营日报\n\n销售额 1250 元。\n\n## 数据来源',
@@ -714,7 +916,7 @@ describe('business-report-dispatcher', () => {
       }),
     );
 
-    const res = await buildSseApp().fetch(buildSseRequest('今天 S001 卖得怎么样'));
+    const res = await buildSseApp().fetch(buildSseRequest('生成今天经营日报'));
     expect(res.status).toBe(200);
     expect(res.headers.get('Content-Type')).toBe('text/event-stream; charset=utf-8');
 
@@ -730,11 +932,6 @@ describe('business-report-dispatcher', () => {
     const pool = new FakeAuthPool();
     setAuthPool(pool);
     await seedValidKey(pool);
-    classifyIntentMock.mockResolvedValue({
-      intent: Intent.BUSINESS_MONTHLY_REPORT,
-      confidence: 0.95,
-      reason: 'monthly',
-    });
     const prepared = {
       merchantId: 'M001',
       storeId: 'S001',
@@ -767,7 +964,7 @@ describe('business-report-dispatcher', () => {
       }),
     );
 
-    const res = await buildSseApp().fetch(buildSseRequest('看一下本月月报'));
+    const res = await buildSseApp().fetch(buildSseRequest('生成本月经营月报'));
     expect(res.status).toBe(200);
 
     const content = await collectSseContent(res);
@@ -783,11 +980,6 @@ describe('business-report-dispatcher', () => {
     const pool = new FakeAuthPool();
     setAuthPool(pool);
     await seedValidKey(pool);
-    classifyIntentMock.mockResolvedValue({
-      intent: Intent.REPLENISHMENT_PLAN,
-      confidence: 0.95,
-      reason: 'replenishment',
-    });
     replenishmentComputeMock.mockResolvedValue({
       items: [{ skuId: 'SKU_WATER', finalSuggestQty: 48, reason: '近 7 日均销 5' }],
       strategyVersion: 'M0-S0-P1',
@@ -809,7 +1001,7 @@ describe('business-report-dispatcher', () => {
     });
     setDispatcher(createBusinessReportDispatcher());
 
-    const res = await buildSseApp().fetch(buildSseRequest('算一份 7 天补货'));
+    const res = await buildSseApp().fetch(buildSseRequest('生成 7 天补货建议'));
     expect(res.status).toBe(200);
 
     const content = await collectSseContent(res);
@@ -823,11 +1015,6 @@ describe('business-report-dispatcher', () => {
     const pool = new FakeAuthPool();
     setAuthPool(pool);
     await seedValidKey(pool);
-    classifyIntentMock.mockResolvedValue({
-      intent: Intent.CONFIRM_CREATE_PURCHASE_ORDER,
-      confidence: 0.95,
-      reason: 'confirm-po',
-    });
     findRecentDraftMock.mockResolvedValue([
       {
         draftId: 'drf_confirm_aaaaaaaaaaaa',

@@ -4,17 +4,20 @@
  */
 import type { Workspace } from '@mastra/core/workspace';
 
-import { generalQa, createGeneralQaAgent } from './general-qa.js';
+import { createGeneralQaAgent } from './general-qa.js';
 import { intentRouter } from './intent-router.js';
+import { marketingGrowthCopilot } from './marketing-growth-copilot.js';
 import { requirementCollector } from './requirement-collector.js';
 
 export { intentRouter } from './intent-router.js';
 export { generalQa, createGeneralQaAgent } from './general-qa.js';
+export { marketingGrowthCopilot, createMarketingGrowthCopilotAgent } from './marketing-growth-copilot.js';
 export { requirementCollector } from './requirement-collector.js';
 
 export interface AgentBundle {
   intentRouter: typeof intentRouter;
   generalQa: ReturnType<typeof createGeneralQaAgent>;
+  marketingGrowthCopilot: typeof marketingGrowthCopilot;
   requirementCollector: typeof requirementCollector;
 }
 
@@ -28,6 +31,7 @@ export function createAgentBundle(
         ? {}
         : { workspace: args.externalSkillsWorkspace },
     ),
+    marketingGrowthCopilot,
     requirementCollector,
   };
 }

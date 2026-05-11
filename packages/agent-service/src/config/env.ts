@@ -12,6 +12,11 @@ const BooleanStringSchema = z
   .default('true')
   .transform((v) => v === 'true');
 
+const BooleanStringDefaultFalseSchema = z
+  .enum(['true', 'false'])
+  .default('false')
+  .transform((v) => v === 'true');
+
 export const ExternalSkillMerchantIdSchema = z
   .string()
   .regex(/^[A-Za-z0-9_-]{1,64}$/)
@@ -36,6 +41,12 @@ const EnvSchema = z
     MODEL_TIMEOUT_MS: z.coerce.number().int().min(5000).max(60000).default(25000),
     MAX_OUTPUT_TOKENS: z.coerce.number().int().min(1).max(8192).default(4096),
     MAX_TOOL_CALLS_PER_REQUEST: z.coerce.number().int().min(1).max(20).default(8),
+    MARKETING_AGENT_ENABLED: BooleanStringDefaultFalseSchema,
+    MARKETING_AGENT_MAX_STEPS: z.coerce.number().int().min(1).max(8).default(8),
+    MARKETING_AGENT_ENABLED_STORE_WHITELIST: z.string().default(''),
+    MARKETING_AGENT_ROLLOUT_PERCENT: z.coerce.number().int().min(0).max(100).default(0),
+    MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS: z.coerce.number().int().min(500).max(10000).default(1500),
+    AGENT_TOOL_CALLS_PER_REQUEST_HARD_LIMIT: z.coerce.number().int().min(1).max(20).default(8),
     ERP_MCP_SERVER_URL: z.string().url(),
     MCP_TENANT_SHARED_SECRET: z.string().min(32),
     MCP_PROTOCOL_VERSION: z.literal('2025-06-18').default('2025-06-18'),

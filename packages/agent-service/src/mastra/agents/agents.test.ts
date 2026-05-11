@@ -36,6 +36,7 @@ const ENV_FIXTURE: Record<string, string> = {
 
 let intentRouter: AgentUnderTest;
 let generalQa: AgentUnderTest;
+let marketingGrowthCopilot: AgentUnderTest;
 let requirementCollector: AgentUnderTest;
 let createGeneralQaAgent: (args?: { workspace?: Workspace }) => AgentUnderTest;
 
@@ -43,6 +44,7 @@ beforeAll(async () => {
   for (const [key, value] of Object.entries(ENV_FIXTURE)) vi.stubEnv(key, value);
   ({ intentRouter } = await import('./intent-router.js'));
   ({ generalQa, createGeneralQaAgent } = await import('./general-qa.js'));
+  ({ marketingGrowthCopilot } = await import('./marketing-growth-copilot.js'));
   ({ requirementCollector } = await import('./requirement-collector.js'));
 });
 
@@ -126,18 +128,18 @@ describe('切片 06 — generalQa Agent', () => {
   it('createGeneralQaAgent 应支持注入 workspace 并让 listTools 只新增 skill tools', async () => {
     const workspace = {
       skills: {
-        list: async () => [],
-        get: async () => null,
-        has: async () => false,
-        refresh: async () => undefined,
-        maybeRefresh: async () => undefined,
-        search: async () => [],
-        getReference: async () => null,
-        getScript: async () => null,
-        getAsset: async () => null,
-        listReferences: async () => [],
-        listScripts: async () => [],
-        listAssets: async () => [],
+        list: () => Promise.resolve([]),
+        get: () => Promise.resolve(null),
+        has: () => Promise.resolve(false),
+        refresh: () => Promise.resolve(undefined),
+        maybeRefresh: () => Promise.resolve(undefined),
+        search: () => Promise.resolve([]),
+        getReference: () => Promise.resolve(null),
+        getScript: () => Promise.resolve(null),
+        getAsset: () => Promise.resolve(null),
+        listReferences: () => Promise.resolve([]),
+        listScripts: () => Promise.resolve([]),
+        listAssets: () => Promise.resolve([]),
       },
       hasFilesystemConfig: () => false,
       getToolsConfig: () => ({ enabled: false }),
@@ -155,6 +157,34 @@ describe('切片 06 — generalQa Agent', () => {
 
     expect(Object.keys(tools).sort()).toEqual(['skill', 'skill_read', 'skill_search']);
     expect(Object.keys(tools).some((key) => key.startsWith('mastra_workspace_'))).toBe(false);
+  });
+});
+
+describe('V2 Phase1 — marketingGrowthCopilot Agent', () => {
+  it('id / name 应为 "marketingGrowthCopilot"', () => {
+    expect(marketingGrowthCopilot.id).toBe('marketingGrowthCopilot');
+    expect(marketingGrowthCopilot.name).toBe('marketingGrowthCopilot');
+  });
+
+  it('instructions 必须声明 9 个只读营销工具、maxSteps=8 与 External Skills 红线', async () => {
+    const text = await readInstructions(marketingGrowthCopilot);
+    for (const tool of [
+      'query_member_profile',
+      'query_member_consumption_history',
+      'query_member_segments',
+      'query_repurchase_cycle',
+      'query_product_performance',
+      'query_inventory_status',
+      'query_pos_summary_by_time',
+      'query_campaign_history',
+      'query_coupon_inventory',
+    ]) {
+      expect(text).toContain(tool);
+    }
+    expect(text).toMatch(/最多\s*8\s*次工具调用|maxSteps\s*=\s*8/);
+    expect(text).toContain('不得加载 External Skills');
+    expect(text).toContain('createPurchaseOrder');
+    expect(text).toContain('不得调用');
   });
 });
 

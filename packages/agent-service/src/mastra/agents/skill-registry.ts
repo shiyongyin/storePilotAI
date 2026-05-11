@@ -1,5 +1,5 @@
 /**
- * 切片 21 — Skill Registry：从 `agent_skill_def` 加载 5 行种子 + 启动期校验 +
+ * 切片 21 — Skill Registry：从 `agent_skill_def` 加载业务 workflow 种子 + 启动期校验 +
  * 灰度白名单网关。
  *
  * 关联任务卡：`docs/任务卡/I-运维.md` §T-OPS-02 §7 MUST DO §4 / §7 / §8 + 切片 21
@@ -8,19 +8,19 @@
  * 强约束（违反即拒收）：
  *   1. {@link verifySkillDef} 必须在启动期严格校验：
  *      - 读 `agent_skill_def` 中所有 `status IN ('enabled','gray')` 的行；
- *      - 与 `createMastra workflows barrel` 暴露的 5 个 Workflow id 严格相等
+ *      - 与 `createMastra workflows barrel` 暴露的 Workflow id 严格相等
  *        （`set(dbCodes) === set(workflowIds)`）；
  *      - 任一缺失 / 多余 → 抛 `SkillDefMismatchError`，bootstrap 顶层 catch →
  *        `process.exit(1)` + 错误日志含 `missing` / `extra`。
  *      - 通过后输出绿灯日志：`[startup] skill-def-verified`（启动六行第 5 行）。
- *   2. 校验通过后**必须**把 5 行种子缓存到进程内 SkillRegistry 单例，让 dispatcher
+ *   2. 校验通过后**必须**把种子缓存到进程内 SkillRegistry 单例，让 dispatcher
  *      在每次入站请求中通过 {@link assertSkillUsable} 做灰度网关 / disabled 拦截。
  *   3. {@link assertSkillUsable}（任务卡 §8.2）：
  *      - `status='disabled'`                                       → 抛 `SKILL_NOT_AVAILABLE`；
  *      - `status='gray' && merchantId ∉ GRAY_MERCHANT_WHITELIST`   → 抛 `SKILL_NOT_AVAILABLE`；
  *      - 其它（`enabled` / `gray + 命中白名单`）                   → 放行。
- *   4. SSOT 边界：5 个 skill_code 与 createMastra workflows barrel 的 5 个 Workflow
- *      id 是同一概念的两侧表达；增删 Skill 必须同步两边 + 回填 README §6 一致性矩阵。
+ *   4. SSOT 边界：skill_code 与 createMastra workflows barrel 的 Workflow id
+ *      是同一概念的两侧表达；增删 Skill 必须同步两边 + 回填 README §6 一致性矩阵。
  *
  * 关键决策：
  *   - 不在 dispatcher 内部直读 DB —— 启动期一次加载 + 内存查询；策略变更走
@@ -130,12 +130,12 @@ export function getSkillRegistry(): SkillRegistry | null {
 }
 
 /**
- * 从 createMastra workflows barrel 收集 5 个 Workflow id（即 5 个 Skill code）。
+ * 从 createMastra workflows barrel 收集 Workflow id（即 Skill code）。
  *
  * 处理点：
  *   - workflows barrel 同时导出驼峰名（`purchaseOrderCreate`）和 snake_case 别名
  *     （`purchase_order_create`），两者引用同一个 `createWorkflow` 实例；这里通过
- *     `workflow.id` 去重，保证返回的是 5 个唯一的 snake_case id。
+ *     `workflow.id` 去重，保证返回唯一的 snake_case id。
  *   - 任意 Workflow 缺 `id` 字段 → 抛错（不允许 barrel 里塞非 Workflow 的导出）。
  */
 export function collectWorkflowIds(): readonly string[] {
@@ -158,7 +158,7 @@ export function collectWorkflowIds(): readonly string[] {
  *   2. 对比 (enabled∪gray) 与 createMastra workflows barrel id：
  *      - missing：barrel 有 / 表里没启用 → 抛 missing；
  *      - extra：表里有 / barrel 没注册 → 抛 extra；
- *      - disabledRequired：5 个里有任何一个落到 status='disabled' → 抛
+ *      - disabledRequired：必备 workflow 中有任何一个落到 status='disabled' → 抛
  *        disabledRequired（任务卡 §9 step 9：删一行 → 启动失败）。
  *   3. 通过后日志 `[startup] skill-def-verified`，返回 SkillRegistry。
  *
@@ -170,7 +170,7 @@ export async function loadSkillRegistryFromDb(
   const expected = collectWorkflowIds();
   if (expected.length === 0) {
     throw new SkillDefMismatchError(
-      '[skill-def] createMastra workflows barrel 为空；至少需要 5 个 Workflow id（切片 12/14/15/17）',
+      '[skill-def] createMastra workflows barrel 为空；至少需要 1 个 Workflow id',
     );
   }
 
@@ -221,7 +221,7 @@ export async function loadSkillRegistryFromDb(
     }
     if (disabledRequired.length > 0) {
       detail.push(
-        `disabledRequired=${JSON.stringify(disabledRequired)}（5 项必备 Skill 中存在 status='disabled'，启动拒绝）`,
+        `disabledRequired=${JSON.stringify(disabledRequired)}（必备 Skill 中存在 status='disabled'，启动拒绝）`,
       );
     }
     throw new SkillDefMismatchError(

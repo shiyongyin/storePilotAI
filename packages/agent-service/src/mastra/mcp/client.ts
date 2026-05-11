@@ -1,12 +1,12 @@
 /**
- * 切片 08 — Mastra MCPClient + 启动期 7 工具白名单严格校验
+ * 切片 08 — Mastra MCPClient + 启动期工具白名单严格校验
  * 严格按 docs/任务卡/D-Mastra.md §T-MASTRA-03.5 + 切片 08 任务卡 §8 落地。
  *
  * 强约束（MUST，违反即拒收）:
  *   - 必须用 @mastra/mcp.MCPClient（红线 2：禁用 ai 包内的实验性 MCPClient 创建函数；ESLint 守门）
  *   - TOOL_WHITELIST 字典序与 shared-contracts TOOL_NAMES 严格相等（启动期单测守门）
  *   - verifyMcpToolsAtStartup 必须严格 JSON.stringify(found.sort()) === JSON.stringify(expected.sort())
- *   - 7 个工具每个都校验 inputSchema / outputSchema 非空
+ *   - 每个工具都校验 inputSchema / outputSchema 非空
  *   - 启动期失败必须含具体 missing / extra 工具名（便于运维定位）
  *   - HTTP 服务连接 connectTimeout 5_000（启动期 fail-fast，避免挂死）
  *   - SIGTERM / SIGINT 必须 disposeMcpClient（避免连接泄漏）
@@ -23,7 +23,7 @@
  *   - 原始 D-Mastra 示例 `getTools()`；mastra 1.0 已迁移为 `listToolsets()`
  *     （返回 `{ serverName: { toolName: Tool } }`，无命名空间前缀，便于本切片做白名单比对），
  *     与 `listTools()`（返回 `serverName_toolName` 命名空间）形成两套读取路径。
- *     本切片采用 `listToolsets()` 取出 `erp` server 的工具表，键即 7 个白名单工具名。
+ *     本切片采用 `listToolsets()` 取出 `erp` server 的工具表，键即白名单工具名。
  *
  * 上述 drift 不影响切片 08 任务卡 §9 任一验收步骤（白名单严格相等比对、missing/extra
  * 错误信息、schema 非空、5s fail-fast、X-Tenant-Key 注入、单例、SIGTERM 清理、红线 grep）。
@@ -35,7 +35,7 @@ import { getEnv } from '../../config/env.js';
 import { logger } from '../../observability/logger.js';
 
 /**
- * 7 工具白名单（必须与 shared-contracts TOOL_NAMES 字典序严格相等）。
+ * 工具白名单（必须与 shared-contracts TOOL_NAMES 字典序严格相等）。
  *
  * 任意增删必须同步：
  *   1. shared-contracts/src/mcp/index.ts 的 ToolContracts barrel + TOOL_NAMES
@@ -53,6 +53,15 @@ export const TOOL_WHITELIST: readonly ToolContractName[] = [
   'queryProductSalesRank',
   'queryReplenishmentBaseData',
   'queryStoreSalesSummary',
+  'query_campaign_history',
+  'query_coupon_inventory',
+  'query_inventory_status',
+  'query_member_consumption_history',
+  'query_member_profile',
+  'query_member_segments',
+  'query_pos_summary_by_time',
+  'query_product_performance',
+  'query_repurchase_cycle',
 ] as const;
 
 export type ToolName = (typeof TOOL_WHITELIST)[number];
@@ -68,6 +77,12 @@ const AGENT_USER_AGENT_VERSION = 'dev';
 
 /** 单例引用 —— 多次 getMcpClient() 必须返回同一实例（切片 08 §7 MUST DO §8） */
 let _client: MCPClient | null = null;
+
+type ToolSchemaEntry = { inputSchema?: unknown; outputSchema?: unknown };
+type ToolSchemaMap = Record<string, ToolSchemaEntry>;
+type ToolSchemasFn = () => Promise<ToolSchemaMap>;
+
+let _toolSchemasFnForTest: ToolSchemasFn | null = null;
 
 /**
  * 获取 MCPClient 单例。
@@ -119,6 +134,51 @@ export async function mcpTools(): Promise<Record<string, unknown>> {
   return toolsets[ERP_SERVER_KEY] ?? {};
 }
 
+async function fetchMcpToolSchemas(): Promise<ToolSchemaMap> {
+  if (_toolSchemasFnForTest) return _toolSchemasFnForTest();
+
+  const env = getEnv();
+  const response = await fetch(env.ERP_MCP_SERVER_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json, text/event-stream',
+      'X-Tenant-Key': env.MCP_TENANT_SHARED_SECRET,
+      'X-Mcp-Protocol-Version': env.MCP_PROTOCOL_VERSION,
+      'User-Agent': `agent-service/${AGENT_USER_AGENT_VERSION}`,
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 'storepilot-tools-list',
+      method: 'tools/list',
+      params: {},
+    }),
+    signal: AbortSignal.timeout(MCP_CONNECT_TIMEOUT_MS),
+  });
+
+  if (!response.ok) {
+    throw new Error(`[mcp] tools/list failed: HTTP ${response.status}`);
+  }
+
+  const payload = await response.json() as {
+    result?: { tools?: Array<{ name?: unknown; inputSchema?: unknown; outputSchema?: unknown }> };
+    error?: { message?: unknown };
+  };
+  if (payload.error) {
+    throw new Error(`[mcp] tools/list failed: ${String(payload.error.message ?? 'unknown error')}`);
+  }
+
+  const out: ToolSchemaMap = {};
+  for (const tool of payload.result?.tools ?? []) {
+    if (typeof tool.name !== 'string') continue;
+    out[tool.name] = {
+      inputSchema: tool.inputSchema,
+      outputSchema: tool.outputSchema,
+    };
+  }
+  return out;
+}
+
 /** verifyMcpToolsAtStartup 失败时抛出；server.ts 捕获后 process.exit(1) */
 export class McpWhitelistError extends Error {
   public readonly missing: ReadonlyArray<string>;
@@ -142,13 +202,13 @@ export class McpWhitelistError extends Error {
 }
 
 /**
- * 启动期严格校验：mock-mock-server / V2 Spring AI 暴露的工具集合必须 == 7 工具白名单。
+ * 启动期严格校验：mock-mock-server / V2 Spring AI 暴露的工具集合必须 == 工具白名单。
  *
  * 校验规则（切片 08 §7 MUST DO §1 / §2 / §3）：
  *   1. 严格 `JSON.stringify(found.sort()) === JSON.stringify(expected.sort())`
  *      —— 数量 / 名字漂移均失败；不允许部分匹配 / 子集匹配。
  *   2. 错误信息必须含具体 missing / extra（便于运维一眼看出缺哪个或多了什么）。
- *   3. 7 个工具每个都需校验 `inputSchema` / `outputSchema` 非空（避免握手成功但 schema 空缺）。
+ *   3. 每个工具都需校验 `inputSchema` / `outputSchema` 非空（避免握手成功但 schema 空缺）。
  *
  * 成功后输出绿灯第 4 行 `[startup] mcp-tools-verified`（与启动六行绿灯口径一致）。
  *
@@ -170,9 +230,10 @@ export async function verifyMcpToolsAtStartup(): Promise<void> {
     );
   }
 
+  const schemas = await fetchMcpToolSchemas();
   const schemaMissing: string[] = [];
   for (const t of expected) {
-    const tool = tools[t] as { inputSchema?: unknown; outputSchema?: unknown } | undefined;
+    const tool = schemas[t];
     if (!tool || !tool.inputSchema || !tool.outputSchema) {
       schemaMissing.push(t);
     }
@@ -215,6 +276,11 @@ export async function disposeMcpClient(): Promise<void> {
  */
 export function __resetMcpClientForTest(): void {
   _client = null;
+  _toolSchemasFnForTest = null;
+}
+
+export function __setMcpToolSchemasForTest(fn: ToolSchemasFn | null): void {
+  _toolSchemasFnForTest = fn;
 }
 
 /**

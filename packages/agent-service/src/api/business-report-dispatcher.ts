@@ -1,8 +1,8 @@
 import dayjs from 'dayjs';
-import { BizError, Intent, friendlyMessage } from '@storepilot/shared-contracts';
+import { BizError, Intent, friendlyMessage, type IntentCode } from '@storepilot/shared-contracts';
+import { stepCountIs } from 'ai';
 
-import { generalQa, requirementCollector, type AgentBundle } from '../mastra/agents/index.js';
-import { classifyIntent } from '../mastra/agents/intent-classifier.js';
+import { generalQa, marketingGrowthCopilot, requirementCollector, type AgentBundle } from '../mastra/agents/index.js';
 import {
   INTENT_TO_SKILL,
   assertSkillUsable,
@@ -31,6 +31,12 @@ import { logger } from '../observability/logger.js';
 import { cancelInflight, confirmDraft } from '../safety/confirm-manager.js';
 import { findRecentDraft } from '../safety/draft-manager.js';
 import type { DispatchArgs, DispatchFn } from './chat-completions.js';
+import { isMarketingEnabledForStore } from './marketing-gray-policy.js';
+import { classifyMarketingScope, sanitizeScopeCandidates } from './marketing-scope-classifier.js';
+import { validateMarketingAgentOutput } from './output-guard.js';
+import { MARKETING_AGENT_MAX_STEPS } from '../mastra/agents/marketing-growth-copilot.js';
+import { US_DISPLAY_NAMES, type UsCode } from '../marketing/phase2/us-display-names.js';
+import { resolveExplicitV1Intent } from './v1-explicit-command-router.js';
 
 interface ReportWorkflowOutput {
   summaryMarkdown: string;
@@ -87,10 +93,11 @@ interface MonthlyValueResult {
  */
 export function createBusinessReportDispatcher(args: {
   now?: () => Date;
-  agents?: Pick<AgentBundle, 'generalQa' | 'requirementCollector'>;
+  agents?: Pick<AgentBundle, 'generalQa' | 'marketingGrowthCopilot' | 'requirementCollector'>;
 } = {}): DispatchFn {
   const now = args.now ?? (() => new Date());
   const activeGeneralQa = args.agents?.generalQa ?? generalQa;
+  const activeMarketingGrowthCopilot = args.agents?.marketingGrowthCopilot ?? marketingGrowthCopilot;
   const activeRequirementCollector = args.agents?.requirementCollector ?? requirementCollector;
 
   return async (dispatchArgs) => {
@@ -101,16 +108,59 @@ export function createBusinessReportDispatcher(args: {
       };
     }
 
-    const { intent } = await classifyIntent(latestUserMessage);
+    const explicitV1Intent = resolveExplicitV1Intent(latestUserMessage);
+    let intent: IntentCode = explicitV1Intent ?? Intent.GENERAL_QA;
 
     try {
+      if (!explicitV1Intent && !isMarketingEnabledForStore(dispatchArgs)) {
+        const fallback = await runGeneralQa(activeGeneralQa, latestUserMessage, dispatchArgs);
+        return { finalText: fallback };
+      }
+
+      if (!explicitV1Intent) {
+        const scope = await classifyMarketingScope(latestUserMessage);
+        if (scope.scope === 'AMBIGUOUS') {
+          if (sanitizeScopeCandidates(scope.candidates).length === 0) {
+            const fallback = await runGeneralQa(activeGeneralQa, latestUserMessage, dispatchArgs);
+            return { finalText: fallback };
+          }
+          return { finalText: makeClarifyResponse(scope.candidates) };
+        }
+        if (scope.scope === 'OUT_OF_SCOPE') {
+          const fallback = await runGeneralQa(activeGeneralQa, latestUserMessage, dispatchArgs);
+          return { finalText: fallback };
+        }
+
+        assertSkillUsable('marketing_growth_copilot', dispatchArgs.auth.merchantId);
+        const ctx = buildCtx(dispatchArgs, 'marketingGrowthCopilot');
+        const r = (await activeMarketingGrowthCopilot.generate(latestUserMessage, {
+          requestContext: ctx as never,
+          stopWhen: stepCountIs(MARKETING_AGENT_MAX_STEPS),
+        })) as { text?: string };
+        const guard = validateMarketingAgentOutput(
+          r?.text === undefined ? {} : { text: r.text },
+          1,
+        );
+        if (!guard.ok) {
+          logger.warn(
+            { fallbackReason: guard.fallbackReason },
+            '[dispatch] marketingGrowthCopilot output rejected; falling back to generalQa',
+          );
+          const fallback = await runGeneralQa(activeGeneralQa, latestUserMessage, dispatchArgs);
+          return { finalText: fallback };
+        }
+        return { finalText: r?.text ?? '暂时没有生成可展示的营销建议，请稍后再试。' };
+      }
+
+      intent = explicitV1Intent;
+
       // 切片 21 §8.2 — Skill 灰度白名单网关：在 dispatcher 进入具体 Workflow 前
       // 按 INTENT_TO_SKILL 表查 skillCode，做 disabled / gray 拦截。
       // - 白名单 hit / status='enabled' → 放行；
       // - status='disabled' / 'gray' 且名外 → 抛 BizError(SKILL_NOT_AVAILABLE)
       //   → 由 try/catch 顶层转 friendlyMessage（任务卡 §9 step 2-3）。
       const skillCode = INTENT_TO_SKILL[intent];
-      if (skillCode !== undefined) {
+      if (skillCode !== undefined && intent !== Intent.CANCEL_REPLENISHMENT_DRAFT) {
         assertSkillUsable(skillCode, dispatchArgs.auth.merchantId);
       }
 
@@ -153,16 +203,8 @@ export function createBusinessReportDispatcher(args: {
 
       // ----- GENERAL_QA / EXPLAIN_METRIC：generalQa Agent 走 DeepSeek -----
       if (intent === Intent.GENERAL_QA || intent === Intent.EXPLAIN_METRIC) {
-        const ctx = buildCtx(dispatchArgs, 'generalQa');
-        // mastra 1.0 generate options 期望 RequestContext<unknown>；项目 RuntimeContext<AgentRuntime>
-        // 是其类型化别名，运行期等价。用 `as never` 绕开协变限制。
-        const r = (await activeGeneralQa.generate(latestUserMessage, {
-          requestContext: ctx as never,
-        })) as { text?: string };
-        return {
-          finalText:
-            r?.text ?? '我可以帮您查日报 / 月报 / 补货建议；请告诉我具体想了解什么。',
-        };
+        const fallback = await runGeneralQa(activeGeneralQa, latestUserMessage, dispatchArgs);
+        return { finalText: fallback };
       }
 
       // ----- COLLECT_REQUIREMENT：requirementCollector 走 DeepSeek，V1 不写表 -----
@@ -313,6 +355,25 @@ function buildCtx(args: DispatchArgs, agentId?: string) {
   });
 }
 
+async function runGeneralQa(
+  agent: Pick<AgentBundle, 'generalQa'>['generalQa'],
+  message: string,
+  dispatchArgs: DispatchArgs,
+): Promise<string> {
+  const ctx = buildCtx(dispatchArgs, 'generalQa');
+  const r = (await agent.generate(message, {
+    requestContext: ctx as never,
+  })) as { text?: string };
+  return r?.text ?? '我可以帮您查日报 / 月报 / 补货建议；请告诉我具体想了解什么。';
+}
+
+function makeClarifyResponse(candidates: readonly string[] | undefined): string {
+  const safeCandidates = sanitizeScopeCandidates(candidates);
+  const selected: UsCode[] =
+    safeCandidates.length > 0 ? safeCandidates : ['US-001', 'US-003', 'US-013'];
+  const options = selected.map((code) => `- ${US_DISPLAY_NAMES[code]}`);
+  return ['请确认您想问的方向：', ...options, '- 其他（直接打字描述）'].join('\n');
+}
 
 async function executeStep<T>(step: unknown, args: Record<string, unknown>): Promise<T> {
   return await (step as StepExecutor<T>).execute(args);

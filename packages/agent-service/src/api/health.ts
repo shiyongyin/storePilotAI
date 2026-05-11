@@ -6,7 +6,7 @@
  * 路由清单：
  *   GET /health         → 进程存活；liveness 唯一探针；返回 `{ status: 'UP' }`
  *   GET /health/db      → MySQL ping + 表数量校验（任务卡口径 ≥ 11 张表）
- *   GET /health/mcp     → MCP listToolsets + 7 工具白名单严格相等
+ *   GET /health/mcp     → MCP listToolsets + V1 7 + V2 9 工具白名单严格相等
  *   GET /health/model   → LLM 文本生成冒烟（generateText({ prompt: 'ping', maxOutputTokens: 1 })）
  *   GET /health/ready   → K8s readinessProbe；聚合 db + mcp（**不含 model**）
  *
@@ -230,14 +230,14 @@ health.get('/health/db', async (c) => {
 });
 
 /**
- * GET /health/mcp — MCP listToolsets + 7 工具白名单严格相等
+ * GET /health/mcp — MCP listToolsets + V1 7 + V2 9 工具白名单严格相等
  *
- * 通过 → `{ status: 'UP', tools: [...7], whitelist: [...7] }`
+ * 通过 → `{ status: 'UP', tools: [...16], whitelist: [...16] }`
  * 失败 → 503 `{ status: 'DOWN', reason, whitelist }`
  *
  * 历史保留：切片 08 期间字段为 `protocolVersion / service`；切片 20 切换为统一形态，
  * `/health/mcp` 与 `/health/db` 同口径（status + reason + payload），
- * verify-slice-08 仍校验 `tools.length === 7` 不变。
+ * V2 Phase1 之后校验 `tools.length === 16`。
  */
 health.get('/health/mcp', async (c) => {
   const r = await checkMcp();

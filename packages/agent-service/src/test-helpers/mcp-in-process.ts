@@ -18,7 +18,7 @@
  *   const mcp = await startMcpMock({ fixtures: 'happy-path' });
  *   try {
  *     vi.stubEnv('ERP_MCP_SERVER_URL', `${mcp.url}/mcp`);
- *     await verifyMcpToolsAtStartup(); // 真实握手 7 工具
+ *     await verifyMcpToolsAtStartup(); // 真实握手完整工具白名单
  *   } finally {
  *     vi.unstubAllEnvs();
  *     await mcp.close();
@@ -38,7 +38,7 @@ export type McpMockHandle = McpAppHandle;
 /**
  * 启动 in-process mock MCP server。
  *
- * @param args fixture profile / port=0(random) / 工具开关；省略时为 `happy-path` + 7 工具齐全。
+ * @param args fixture profile / port=0(random) / 工具开关；省略时为 `happy-path` + 完整工具白名单。
  * @returns `{ url, port, fixtures, close }`；调用方负责 `await close()` 释放端口。
  */
 export async function startMcpMock(args: StartMcpMockArgs = {}): Promise<McpMockHandle> {

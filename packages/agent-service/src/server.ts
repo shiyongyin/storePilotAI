@@ -109,7 +109,7 @@ const SHUTDOWN_SSE_GRACE_MS = 25_000;
  * 切片 21 — `verifySkillDef` 真校验（替换切片 20 临时 hook）：
  *
  *   - 读 `agent_skill_def` 表所有行；
- *   - 与 createMastra workflows barrel 暴露的 5 个 Workflow id 严格相等
+ *   - 与 createMastra workflows barrel 暴露的 Workflow id 严格相等
  *     （任务卡 §7 MUST DO §7 / §9 step 8 / §9 step 9）；
  *   - 缺一 / 多一 / required 项落到 disabled → 抛 `SkillDefMismatchError`；
  *   - 通过后输出绿灯日志 `[startup] skill-def-verified` + 缓存 SkillRegistry
@@ -187,10 +187,10 @@ async function bootstrap(): Promise<void> {
   const storage = createMysqlStorage({ env, pool: storagePool });
   await storage.init();
 
-  // line 4: mcp-tools-verified —— 切片 08 主交付：严格 7 工具白名单校验
+  // line 4: mcp-tools-verified —— 切片 08 主交付：严格工具白名单校验
   await verifyMcpToolsAtStartup();
 
-  // line 5: skill-def-verified（切片 21 落地：5 行 agent_skill_def 与 createMastra
+  // line 5: skill-def-verified（切片 21 落地：agent_skill_def 与 createMastra
   // workflows barrel 严格相等；缺一抛错 → process.exit(1)）。
   await verifySkillDef(storagePool);
 
