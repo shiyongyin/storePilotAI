@@ -68,12 +68,24 @@ describe('external skills env schema', () => {
     expect(env.MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS).toBe(1500);
   });
 
-  it('parses MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS for live semantic routing smoke tests', () => {
+  it('accepts MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS up to the 5000ms hard ceiling', () => {
     stubBaseEnv({
-      MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS: '8000',
+      MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS: '5000',
     });
 
-    expect(getEnv().MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS).toBe(8000);
+    expect(getEnv().MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS).toBe(5000);
+  });
+
+  it('rejects MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS above the 5000ms hard ceiling', () => {
+    expectEnvExit({
+      MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS: '8000',
+    });
+  });
+
+  it('rejects MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS below the 200ms floor', () => {
+    expectEnvExit({
+      MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS: '100',
+    });
   });
 
   it('requires absolute base dir, absolute manifest path, and non-empty allowed sources when enabled', () => {

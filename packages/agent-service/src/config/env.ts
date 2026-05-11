@@ -45,7 +45,10 @@ const EnvSchema = z
     MARKETING_AGENT_MAX_STEPS: z.coerce.number().int().min(1).max(8).default(8),
     MARKETING_AGENT_ENABLED_STORE_WHITELIST: z.string().default(''),
     MARKETING_AGENT_ROLLOUT_PERCENT: z.coerce.number().int().min(0).max(100).default(0),
-    MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS: z.coerce.number().int().min(500).max(10000).default(1500),
+    // 入口分类器超时硬上限：5000ms。该步骤属于秒级路由判断，>5s 一律视为模型抖动，
+    // 应该让上层尽快走 catch 兜底（degraded: true + AMBIGUOUS），而不是把用户卡住。
+    // 默认 1500ms；min 200ms 给 dev/local mock 留余地；max 5000ms 是生产防呆。
+    MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS: z.coerce.number().int().min(200).max(5000).default(1500),
     AGENT_TOOL_CALLS_PER_REQUEST_HARD_LIMIT: z.coerce.number().int().min(1).max(20).default(8),
     ERP_MCP_SERVER_URL: z.string().url(),
     MCP_TENANT_SHARED_SECRET: z.string().min(32),
