@@ -160,7 +160,7 @@
     "docs/任务卡/技术研究报告.md",
     "docs/门店助手Agent_V1_产品PRD.md",
     "docs/门店助手Agent_V1_开发设计指南.md",
-    "docs/门店助手Agent_V1_本体模型文档.md",
+    "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md",
     "docs/门店助手Agent_V1_运维手册.md"
   ],
   "migrations": [

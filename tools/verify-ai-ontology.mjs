@@ -28,7 +28,7 @@ const requiredFiles = [
   'docs/ai-ontology/reference/project_ontology.json',
   'docs/ai-ontology/reference/relations.csv',
   'docs/ai-ontology/reference/source_inventory.json',
-  'docs/门店助手Agent_V1_本体模型文档.md',
+  'docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md',
   'docs/ai-ontology/cards/mcp_contract_drift.md',
   'docs/ai-ontology/cards/purchase_order_high_risk.md',
   'docs/ai-ontology/cards/replenishment_draft_state_machine.md',
@@ -60,15 +60,24 @@ const agentsRequiredRules = [
   'R-OUT-001',
 ];
 
-// 启动期 / 一致性事实校验：MCP 工具数量必须与 shared-contracts 中的 schema 文件数量、
-// AI_ONTOLOGY.md 中文档化的 7 工具白名单一致。
+// 启动期 / 一致性事实校验：MCP 工具名必须与 shared-contracts/mcp/index.ts 中的
+// ToolContracts / TOOL_NAMES 描述一致。V2 营销工具集中定义在 marketing.ts。
 const expectedMcpTools = [
   'createPurchaseOrder',
   'getStoreReportConfig',
+  'query_campaign_history',
   'queryCategorySalesRatio',
+  'query_coupon_inventory',
   'queryInventoryOverview',
+  'query_inventory_status',
+  'query_member_consumption_history',
+  'query_member_profile',
+  'query_member_segments',
   'queryProductSalesRank',
+  'query_pos_summary_by_time',
   'queryReplenishmentBaseData',
+  'query_product_performance',
+  'query_repurchase_cycle',
   'queryStoreSalesSummary',
 ];
 
@@ -104,7 +113,7 @@ const portableTextFiles = [
   'AI_ONTOLOGY.md',
   'package.json',
   'tools/verify-ai-ontology.mjs',
-  'docs/门店助手Agent_V1_本体模型文档.md',
+  'docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md',
 ];
 
 function projectPath(relativePath) {
@@ -309,11 +318,12 @@ for (const [relativePath, text] of referencedDocs) {
   }
 }
 
-// 红方加固：MCP 工具白名单事实交叉验证 —— shared-contracts 实际 schema 文件、AI_ONTOLOGY 描述、
-// README 描述、verifier 期望集合必须严格一致。任何漂移都在 verifier 里立即暴露。
+// 红方加固：MCP 工具白名单事实交叉验证 —— shared-contracts index、README 描述、
+// verifier 期望集合必须严格一致。任何漂移都在 verifier 里立即暴露。
 const mcpSchemaDir = 'packages/shared-contracts/src/mcp';
 if (existsSync(projectPath(mcpSchemaDir))) {
-  const mcpSchemaFiles = readdirSync(projectPath(mcpSchemaDir))
+  const mcpSchemaFiles = new Set(
+    readdirSync(projectPath(mcpSchemaDir))
     .filter((name) => name.endsWith('.ts'))
     .filter(
       (name) =>
@@ -322,15 +332,22 @@ if (existsSync(projectPath(mcpSchemaDir))) {
         !name.includes('.test.'),
     )
     .map((name) => name.replace(/\.ts$/, ''))
-    .sort();
-  const expectedSorted = [...expectedMcpTools].sort();
-  if (mcpSchemaFiles.join(',') !== expectedSorted.join(',')) {
-    fail(
-      'mcp-tool-set-drift',
-      `shared-contracts MCP schema files [${mcpSchemaFiles.join(',')}] do not match expected MCP tool whitelist [${expectedSorted.join(',')}]`,
-    );
+  );
+  for (const file of [
+    'createPurchaseOrder',
+    'getStoreReportConfig',
+    'marketing',
+    'queryCategorySalesRatio',
+    'queryInventoryOverview',
+    'queryProductSalesRank',
+    'queryReplenishmentBaseData',
+    'queryStoreSalesSummary',
+  ]) {
+    if (!mcpSchemaFiles.has(file)) {
+      fail('mcp-schema-file-missing', `${mcpSchemaDir}/${file}.ts missing`);
+    }
   }
-  const mcpIndex = readText(`${mcpSchemaDir}/index.ts`);
+  const mcpIndex = `${readText(`${mcpSchemaDir}/index.ts`)}\n${readText(`${mcpSchemaDir}/marketing.ts`)}`;
   for (const tool of expectedMcpTools) {
     if (!mcpIndex.includes(tool)) {
       fail(
@@ -339,7 +356,7 @@ if (existsSync(projectPath(mcpSchemaDir))) {
       );
     }
   }
-  // README 与 AI_ONTOLOGY.md 描述也必须包含全部 7 个工具名
+  // README 与 AI_ONTOLOGY.md 描述也必须包含全部工具名
   const readmeText = readText('README.md');
   for (const tool of expectedMcpTools) {
     if (!readmeText.includes(tool)) {

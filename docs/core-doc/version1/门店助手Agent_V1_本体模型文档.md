@@ -726,9 +726,9 @@ erDiagram
 
 ---
 
-### 3.6.3 Skill 能力
+### 3.6.3 SkillDef 注册项 / Skill 能力
 
-**定义**：可被 Agent 编排的业务能力组件。  
+**定义**：`agent_skill_def` 中用于注册、灰度、回滚和工具白名单校验的运行时条目；多数条目对应可被 Agent 编排的业务能力组件，少数条目对应固定 workflow。V1 中 `purchase_order_create` 是高风险 HITL 确认工作流，保留 `skillCode` 只是为了复用 SkillDef 守门机制。
 **唯一标识**：`skillCode + version`
 
 | 属性 | 类型 | 必填 | 说明 | 示例 |
@@ -746,10 +746,10 @@ erDiagram
 
 强规则：
 
-1. Skill 必须定义输入输出 Schema。
-2. Skill 必须声明工具白名单。
-3. 新增 Skill 不允许修改 Agent Core 主流程。
-4. 高风险 Skill 的输出必须经过 Confirm Manager。
+1. 每个 SkillDef 注册项必须定义输入输出 Schema。
+2. 每个 SkillDef 注册项必须声明工具白名单。
+3. 新增业务能力或 workflow 不允许修改 Agent Core 主流程。
+4. 高风险 HITL workflow 必须经过 Confirm Manager。
 
 ---
 
@@ -1201,15 +1201,17 @@ export interface SkillContext {
 }
 ```
 
-## 7.3 V1 Skill 清单
+## 7.3 V1 SkillDef / Workflow 清单
 
-| Skill Code | 名称 | 意图 | 风险等级 | 说明 |
+> 命名说明：`skillCode` 是运行时注册 ID，必须与 workflow id 对齐；它不总等同于产品语义上的“Skill”。`purchase_order_create` 是确认采购单的 HITL workflow。
+
+| skillCode | 运行形态 | 意图 | 风险等级 | 说明 |
 |---|---|---|---|---|
-| business_daily_report | 经营日报 | BUSINESS_DAILY_REPORT | LOW | 生成日经营分析 |
-| business_monthly_report | 经营月报 | BUSINESS_MONTHLY_REPORT | LOW | 生成月经营分析 |
-| replenishment_forecast | 补货预测 | REPLENISHMENT_PLAN | MEDIUM | 生成补货草稿 |
-| replenishment_adjustment | 补货调整 | ADJUST_REPLENISHMENT_DRAFT | MEDIUM | 多轮调整草稿 |
-| purchase_order_create | 采购单创建 | CONFIRM_CREATE_PURCHASE_ORDER | HIGH | 确认后创建采购单 |
+| business_daily_report | 经营日报 workflow / 业务能力 | BUSINESS_DAILY_REPORT | LOW | 生成日经营分析 |
+| business_monthly_report | 经营月报 workflow / 业务能力 | BUSINESS_MONTHLY_REPORT | LOW | 生成月经营分析 |
+| replenishment_forecast | 补货预测 workflow / 业务能力 | REPLENISHMENT_PLAN | MEDIUM | 生成补货草稿 |
+| replenishment_adjustment | 补货调整 workflow / 指令处理能力 | ADJUST_REPLENISHMENT_DRAFT | MEDIUM | 多轮调整草稿 |
+| purchase_order_create | HITL 确认采购单 workflow | CONFIRM_CREATE_PURCHASE_ORDER | HIGH | 确认后创建采购单；兼容 SkillDef 守门但不是普通 Skill |
 
 ---
 
@@ -1921,4 +1923,3 @@ V1.1 可增加：
 | Confirm Manager | 写操作确认网关 |
 | SkillRun | Skill 单次执行记录 |
 | AgentRun | 用户请求完整执行记录 |
-

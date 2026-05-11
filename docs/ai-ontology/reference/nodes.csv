@@ -1,5 +1,5 @@
 id,type,name,description,evidence,confidence
-project.storepilot-ai,Project,门店助手 Agent V1 / storepilot-ai,面向多商家多门店经营分析、补货建议、采购闭环的 TypeScript monorepo。,package.json:L1-L31; docs/门店助手Agent_V1_本体模型文档.md:L50-L82,0.95
+project.storepilot-ai,Project,门店助手 Agent V1 / storepilot-ai,面向多商家多门店经营分析、补货建议、采购闭环的 TypeScript monorepo。,package.json:L1-L31; docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L50-L82,0.95
 component.storepilot_ai,SystemComponent,storepilot-ai,pnpm workspace；scripts 覆盖 build/lint/test/migrate/dev,package.json:L1-L31,0.95
 component.storepilot.agent_service,SystemComponent,@storepilot/agent-service,Hono + Mastra + MySQL + MCP + SSE + 安全层,packages/agent-service/package.json:L1-L37,0.95
 component.storepilot.shared_contracts,SystemComponent,@storepilot/shared-contracts,Intent/Draft/Strategy/Skill/Error/MCP Zod 契约,packages/shared-contracts/package.json:L1-L30,0.95
@@ -50,13 +50,13 @@ workflow.business_monthly_report,Workflow,business_monthly_report,"Mastra workfl
 workflow.purchase_order_create,Workflow,purchase_order_create,"Mastra workflow，步骤：preview-purchase-order, ask-confirm, create-purchase-order",packages/agent-service/src/mastra/workflows/purchase-order-create.ts,0.95
 workflow.replenishment_adjustment,Workflow,replenishment_adjustment,"Mastra workflow，步骤：load-active-draft, extract-instruction, apply-instruction, persist-adjustment",packages/agent-service/src/mastra/workflows/replenishment-adjustment.ts,0.95
 workflow.replenishment_forecast,Workflow,replenishment_forecast,"Mastra workflow，步骤：compute-suggest-qty, persist-draft",packages/agent-service/src/mastra/workflows/replenishment-forecast.ts,0.95
-domain.Merchant,DomainConcept,商家,策略、Skill 启用、数据隔离、报表配置的一级边界。,docs/门店助手Agent_V1_本体模型文档.md:L161-L195,0.95
-domain.Store,DomainConcept,门店,商家下的经营单元；补货、日报、库存、销售以门店为主要执行范围。,docs/门店助手Agent_V1_本体模型文档.md:L198-L213,0.95
-domain.User,DomainConcept,用户,发起对话和确认采购单的操作者。,docs/门店助手Agent_V1_本体模型文档.md:L86-L129,0.95
-domain.Category,DomainConcept,品类,SKU 的分类维度，用于占比、策略和补货分组。,docs/门店助手Agent_V1_本体模型文档.md:L262-L329,0.95
-domain.Sku,DomainConcept,SKU,商品最小经营与补货对象。,docs/门店助手Agent_V1_本体模型文档.md:L262-L329,0.95
-domain.Supplier,DomainConcept,供应商,采购单和补货候选项的供货来源。,docs/门店助手Agent_V1_本体模型文档.md:L262-L329,0.95
-domain.SalesSummary,DomainConcept,销售汇总,经营日报/月报使用的销售额、订单数、客单价等。,docs/门店助手Agent_V1_本体模型文档.md:L332-L410,0.95
+domain.Merchant,DomainConcept,商家,策略、Skill 启用、数据隔离、报表配置的一级边界。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L161-L195,0.95
+domain.Store,DomainConcept,门店,商家下的经营单元；补货、日报、库存、销售以门店为主要执行范围。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L198-L213,0.95
+domain.User,DomainConcept,用户,发起对话和确认采购单的操作者。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L86-L129,0.95
+domain.Category,DomainConcept,品类,SKU 的分类维度，用于占比、策略和补货分组。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L262-L329,0.95
+domain.Sku,DomainConcept,SKU,商品最小经营与补货对象。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L262-L329,0.95
+domain.Supplier,DomainConcept,供应商,采购单和补货候选项的供货来源。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L262-L329,0.95
+domain.SalesSummary,DomainConcept,销售汇总,经营日报/月报使用的销售额、订单数、客单价等。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L332-L410,0.95
 domain.InventorySnapshot,DomainConcept,库存快照,SKU 当前库存、低库存、缺货、库存价值等。,packages/shared-contracts/src/mcp/queryInventoryOverview.ts:L9-L28,0.95
 domain.ReplenishmentDraft,DomainConcept,补货草稿,补货预测生成，可调整、确认、提交为采购单。,packages/shared-contracts/src/drafts.ts:L32-L46,0.95
 domain.DraftItem,DomainConcept,补货明细,补货草稿中的 SKU 建议数量和原因。,packages/shared-contracts/src/drafts.ts:L20-L28,0.95
@@ -64,7 +64,7 @@ domain.AdjustmentInstruction,DomainConcept,调整指令,用户自然语言调整
 domain.PurchaseOrder,DomainConcept,采购单,确认后调用 ERP MCP 创建的采购单。,packages/shared-contracts/src/mcp/createPurchaseOrder.ts:L1-L45,0.95
 domain.Strategy,DomainConcept,策略,平台/商家/门店三级合并后的生效策略。,packages/shared-contracts/src/strategies.ts:L14-L33,0.95
 domain.AgentSession,DomainConcept,Agent 会话,承载 sessionId、租户上下文和 HITL 挂起状态。,migrations/006-init-agent-session.sql:L8-L29,0.95
-domain.ReportView,DomainConcept,报表视图,经营报表的卡片、洞察和 Markdown 输出。,docs/门店助手Agent_V1_本体模型文档.md:L117-L129,0.95
+domain.ReportView,DomainConcept,报表视图,经营报表的卡片、洞察和 Markdown 输出。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L117-L129,0.95
 api.health,HealthAPI,健康检查聚合,"GET /health, /health/db, /health/mcp, /health/model, /health/ready",packages/agent-service/src/api/health.ts:L1-L18,0.95
 api.health.liveness,HealthAPI,GET /health,liveness，不做 IO。,packages/agent-service/src/api/health.ts:L194-L201,0.95
 api.health.db,HealthAPI,GET /health/db,检查 SELECT 1 和表数量 >= 11。,packages/agent-service/src/api/health.ts:L112-L147,0.95
@@ -73,10 +73,10 @@ api.health.model,HealthAPI,GET /health/model,模型 ping。,packages/agent-servi
 api.health.ready,HealthAPI,GET /health/ready,readiness = db + mcp，不含 model。,packages/agent-service/src/api/health.ts:L281-L298,0.95
 api.chat.completions,HTTPAPI,POST /v1/chat/completions,OpenAI-compatible SSE 桥入口。,packages/agent-service/src/api/chat-completions.ts:L243-L453,0.95
 api.mcp_mock.health,HealthAPI,GET mcp-mock /health,返回 mock 状态、协议版本、fixtureProfile、toolCount。,packages/mcp-mock-server/src/app.ts:L128-L137,0.95
-rule.R-AI-001,BusinessRule,不能编造业务数据,销售额、库存、SKU、采购数量必须来自 MCP Tool 返回或已保存草稿。,docs/门店助手Agent_V1_本体模型文档.md:L37-L47,0.95
-rule.R-AI-002,BusinessRule,创建采购单必须确认,AI 不能绕过确认；采购单创建前必须展示结构化明细并获得明确确认。,docs/门店助手Agent_V1_本体模型文档.md:L41-L43,0.95
-rule.R-AI-003,BusinessRule,不能从 Markdown 反解析提单,采购单明细必须来自 ReplenishmentDraft.items / finalSuggestQty，不得从展示文本提取。,docs/门店助手Agent_V1_本体模型文档.md:L1137-L1150,0.95
-rule.R-SEC-001,BusinessRule,商家/门店硬隔离,查询、草稿、策略、采购单绑定 merchantId/storeId；DraftManager 所有 SQL 带租户条件。,docs/门店助手Agent_V1_本体模型文档.md:L1154-L1164; packages/agent-service/src/safety/draft-manager.ts:L15-L21,0.95
+rule.R-AI-001,BusinessRule,不能编造业务数据,销售额、库存、SKU、采购数量必须来自 MCP Tool 返回或已保存草稿。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L37-L47,0.95
+rule.R-AI-002,BusinessRule,创建采购单必须确认,AI 不能绕过确认；采购单创建前必须展示结构化明细并获得明确确认。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L41-L43,0.95
+rule.R-AI-003,BusinessRule,不能从 Markdown 反解析提单,采购单明细必须来自 ReplenishmentDraft.items / finalSuggestQty，不得从展示文本提取。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L1137-L1150,0.95
+rule.R-SEC-001,BusinessRule,商家/门店硬隔离,查询、草稿、策略、采购单绑定 merchantId/storeId；DraftManager 所有 SQL 带租户条件。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L1154-L1164; packages/agent-service/src/safety/draft-manager.ts:L15-L21,0.95
 rule.R-STR-001,BusinessRule,策略合并优先级,EffectiveStrategy 由 Store > Merchant > Platform 合并；合并失败降级并记录原因。,packages/agent-service/src/safety/strategy-engine.ts:L1-L17,0.95
 rule.R-STR-002,BusinessRule,禁止自动采购单,StrategySchema 中 allowAutoPurchaseOrder 固定 false。,packages/shared-contracts/src/strategies.ts:L14-L33,0.95
 rule.R-STR-003,BusinessRule,写操作必须用户确认,StrategySchema 中 requireUserConfirmForWrite 固定 true。,packages/shared-contracts/src/strategies.ts:L14-L33,0.95

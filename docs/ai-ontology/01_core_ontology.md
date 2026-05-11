@@ -61,8 +61,8 @@ API / MCP / DB / Env / Health]
 | `ReplenishmentDraft contains DraftItem` | 草稿保存结构化 SKU 明细。 | `items` JSON。 |
 | `Draft adjustedBy AdjustmentInstruction` | 用户自然语言调整转结构化指令。 | `replenishment_adjustment_log`。 |
 | `Draft submittedAs PurchaseOrder` | 确认后创建 ERP 采购单。 | `createPurchaseOrder` MCP。 |
-| `Skill requires MCP Tool` | Skill 只能使用白名单工具。 | `agent_skill_def.required_tools`。 |
-| `Skill implements Workflow` | Skill code 与 workflow id 一致。 | workflow barrel + seed。 |
+| `SkillDef requires MCP Tool` | SkillDef 注册项只能使用白名单工具。 | `agent_skill_def.required_tools`。 |
+| `SkillDef implements Workflow` | `skill_code` 与 workflow id 一致。 | workflow barrel + seed。 |
 | `agent-service exposes ChatCompletions` | 前端统一对话入口。 | `/v1/chat/completions`。 |
 
 ## 4. 本地系统不是 ERP 替代品
@@ -86,7 +86,7 @@ API / MCP / DB / Env / Health]
 | 实际数据库结构 | `migrations/*.sql` |
 | 实际运行链路 | `packages/agent-service/src` |
 | Mock 行为 | `packages/mcp-mock-server/src` |
-| 业务设计意图 | `docs/门店助手Agent_V1_本体模型文档.md` |
+| 业务设计意图 | `docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md` |
 | 项目状态 | 当前代码 + migrations；README 可能滞后 |
 
 ## 6. 模型推理边界

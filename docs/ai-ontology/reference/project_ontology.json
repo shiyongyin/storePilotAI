@@ -17,7 +17,7 @@
       "description": "面向多商家多门店经营分析、补货建议、采购闭环的 TypeScript monorepo。",
       "evidence": [
         "package.json:L1-L31",
-        "docs/门店助手Agent_V1_本体模型文档.md:L50-L82"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L50-L82"
       ],
       "properties": {},
       "confidence": 0.95
@@ -676,7 +676,7 @@
       "name": "商家",
       "description": "策略、Skill 启用、数据隔离、报表配置的一级边界。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L161-L195"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L161-L195"
       ],
       "properties": {},
       "confidence": 0.95
@@ -687,7 +687,7 @@
       "name": "门店",
       "description": "商家下的经营单元；补货、日报、库存、销售以门店为主要执行范围。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L198-L213"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L198-L213"
       ],
       "properties": {},
       "confidence": 0.95
@@ -698,7 +698,7 @@
       "name": "用户",
       "description": "发起对话和确认采购单的操作者。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L86-L129"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L86-L129"
       ],
       "properties": {},
       "confidence": 0.95
@@ -709,7 +709,7 @@
       "name": "品类",
       "description": "SKU 的分类维度，用于占比、策略和补货分组。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L262-L329"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L262-L329"
       ],
       "properties": {},
       "confidence": 0.95
@@ -720,7 +720,7 @@
       "name": "SKU",
       "description": "商品最小经营与补货对象。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L262-L329"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L262-L329"
       ],
       "properties": {},
       "confidence": 0.95
@@ -731,7 +731,7 @@
       "name": "供应商",
       "description": "采购单和补货候选项的供货来源。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L262-L329"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L262-L329"
       ],
       "properties": {},
       "confidence": 0.95
@@ -742,7 +742,7 @@
       "name": "销售汇总",
       "description": "经营日报/月报使用的销售额、订单数、客单价等。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L332-L410"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L332-L410"
       ],
       "properties": {},
       "confidence": 0.95
@@ -830,7 +830,7 @@
       "name": "报表视图",
       "description": "经营报表的卡片、洞察和 Markdown 输出。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L117-L129"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L117-L129"
       ],
       "properties": {},
       "confidence": 0.95
@@ -929,7 +929,7 @@
       "name": "不能编造业务数据",
       "description": "销售额、库存、SKU、采购数量必须来自 MCP Tool 返回或已保存草稿。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L37-L47"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L37-L47"
       ],
       "properties": {
         "ruleId": "R-AI-001"
@@ -942,7 +942,7 @@
       "name": "创建采购单必须确认",
       "description": "AI 不能绕过确认；采购单创建前必须展示结构化明细并获得明确确认。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L41-L43"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L41-L43"
       ],
       "properties": {
         "ruleId": "R-AI-002"
@@ -955,7 +955,7 @@
       "name": "不能从 Markdown 反解析提单",
       "description": "采购单明细必须来自 ReplenishmentDraft.items / finalSuggestQty，不得从展示文本提取。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L1137-L1150"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L1137-L1150"
       ],
       "properties": {
         "ruleId": "R-AI-003"
@@ -968,7 +968,7 @@
       "name": "商家/门店硬隔离",
       "description": "查询、草稿、策略、采购单绑定 merchantId/storeId；DraftManager 所有 SQL 带租户条件。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L1154-L1164; packages/agent-service/src/safety/draft-manager.ts:L15-L21"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L1154-L1164; packages/agent-service/src/safety/draft-manager.ts:L15-L21"
       ],
       "properties": {
         "ruleId": "R-SEC-001"
@@ -1344,7 +1344,7 @@
       "target": "domain.Store",
       "description": "商家拥有多个门店。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L131-L153"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L131-L153"
       ],
       "confidence": 0.92
     },
@@ -1354,7 +1354,7 @@
       "target": "domain.InventorySnapshot",
       "description": "门店拥有 SKU 库存快照。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L131-L153"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L131-L153"
       ],
       "confidence": 0.92
     },
@@ -1364,7 +1364,7 @@
       "target": "domain.SalesSummary",
       "description": "门店拥有经营销售汇总。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L131-L153"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L131-L153"
       ],
       "confidence": 0.92
     },
@@ -1374,7 +1374,7 @@
       "target": "domain.Sku",
       "description": "品类包含 SKU。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L131-L153"
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L131-L153"
       ],
       "confidence": 0.92
     },
@@ -1384,7 +1384,7 @@
       "target": "domain.ReplenishmentDraft",
       "description": "会话创建补货草稿。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L131-L153",
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L131-L153",
         "migrations/002-init-replenishment.sql:L8-L33"
       ],
       "confidence": 0.92
@@ -1597,25 +1597,25 @@
       "id": "R-AI-001",
       "name": "不能编造业务数据",
       "description": "销售额、库存、SKU、采购数量必须来自 MCP Tool 返回或已保存草稿。",
-      "evidence": "docs/门店助手Agent_V1_本体模型文档.md:L37-L47"
+      "evidence": "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L37-L47"
     },
     {
       "id": "R-AI-002",
       "name": "创建采购单必须确认",
       "description": "AI 不能绕过确认；采购单创建前必须展示结构化明细并获得明确确认。",
-      "evidence": "docs/门店助手Agent_V1_本体模型文档.md:L41-L43"
+      "evidence": "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L41-L43"
     },
     {
       "id": "R-AI-003",
       "name": "不能从 Markdown 反解析提单",
       "description": "采购单明细必须来自 ReplenishmentDraft.items / finalSuggestQty，不得从展示文本提取。",
-      "evidence": "docs/门店助手Agent_V1_本体模型文档.md:L1137-L1150"
+      "evidence": "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L1137-L1150"
     },
     {
       "id": "R-SEC-001",
       "name": "商家/门店硬隔离",
       "description": "查询、草稿、策略、采购单绑定 merchantId/storeId；DraftManager 所有 SQL 带租户条件。",
-      "evidence": "docs/门店助手Agent_V1_本体模型文档.md:L1154-L1164; packages/agent-service/src/safety/draft-manager.ts:L15-L21"
+      "evidence": "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L1154-L1164; packages/agent-service/src/safety/draft-manager.ts:L15-L21"
     },
     {
       "id": "R-STR-001",
@@ -1737,7 +1737,7 @@
       "title": "原本体模型文档的“数据表建议”与实际 migrations 有字段差异",
       "description": "例如原文档建议 replenishment_draft 使用 draft_items_json/report_markdown 等字段，实际 DDL 使用 items、strategy_version、submitted_po_no、expires_at 等。当前文档包以 migrations 为数据持久化 SSOT。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L1510-L1659",
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L1510-L1659",
         "migrations/002-init-replenishment.sql:L8-L33"
       ]
     },
@@ -1764,7 +1764,7 @@
       "title": "核心业务实体多数由 ERP/MCP 提供，本仓库不落本地业务主数据表",
       "description": "Merchant/Store/Sku/Category/Supplier/SalesSummary/InventorySnapshot 等在本体文档和 MCP 契约中定义，本地 SQL 主要存 Agent 运行态、策略、草稿、会话与审计。",
       "evidence": [
-        "docs/门店助手Agent_V1_本体模型文档.md:L86-L153",
+        "docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L86-L153",
         "packages/shared-contracts/src/mcp/queryReplenishmentBaseData.ts:L7-L43",
         "migrations/001-init-skill-and-strategy.sql:L7-L52",
         "migrations/002-init-replenishment.sql:L8-L54"

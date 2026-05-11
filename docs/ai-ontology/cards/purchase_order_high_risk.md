@@ -35,4 +35,4 @@ ReplenishmentDraft.items
 - 从上一次 markdown 中截取 SKU 和数量。
 - 并发确认时没有 lock。
 - createPurchaseOrder 成功前把本地 draft 标为 submitted。
-- 将 `purchase_order_create` 从 gray 高风险能力直接改成全量 enabled，而没有产品确认和测试。
+- 将 `purchase_order_create` 从 gray 高风险 HITL workflow 直接改成全量 enabled，而没有产品确认和测试。

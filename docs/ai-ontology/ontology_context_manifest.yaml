@@ -45,7 +45,7 @@ source_of_truth_priority:
   persistence: migrations/*.sql
   runtime: packages/agent-service/src
   mcp_mock: packages/mcp-mock-server/src
-  product_design: docs/门店助手Agent_V1_本体模型文档.md
+  product_design: docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md
 secret_policy:
   env_values: never_emit
   env_schema_keys: allowed

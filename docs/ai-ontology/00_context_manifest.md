@@ -33,6 +33,8 @@ project: storepilot-ai
 | 修改数据库/迁移 | `06_data_persistence.md` | `09_open_issues.md` |
 | 修改 ChatCompletions/SSE/Auth | `03_runtime_and_boundaries.md` | `cards/tenant_isolation.md`, `07_guardrails.md` |
 | 修改报表数字/卡片 | `04_skill_intent_workflow.md`, `cards/report_number_consistency.md` | `05_mcp_contracts.md` |
+| 修改 V2 营销范围 / 灰度 / scope classifier | `cards/marketing_scope_router.md`, `07_guardrails.md` | `03_runtime_and_boundaries.md`, `04_skill_intent_workflow.md`, `09_open_issues.md` |
+| 修改 marketingGrowthCopilot / Phase2 规则 / 输出守卫 | `04_skill_intent_workflow.md`, `cards/marketing_agent_pii_and_output_guard.md` | `05_mcp_contracts.md`, `10_evidence_index.md`, `09_open_issues.md` |
 | 更新文档/README | `09_open_issues.md`, `10_evidence_index.md` | `01_core_ontology.md` |
 
 ## L3：证据层
@@ -62,4 +64,8 @@ IF task touches SkillDef, workflow id, dispatcher, Intent:
 
 IF task touches merchantId/storeId/userId/session/draft SQL:
   read cards/tenant_isolation.md + 07_guardrails.md
+
+IF task touches marketingGrowthCopilot OR V2 marketing scope/router/output/card_data:
+  read cards/marketing_scope_router.md + cards/marketing_agent_pii_and_output_guard.md
+  + 09_open_issues.md + 10_evidence_index.md
 ```

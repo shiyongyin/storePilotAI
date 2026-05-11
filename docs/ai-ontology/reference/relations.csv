@@ -13,11 +13,11 @@ component.storepilot.agent_service,exposes,api.chat.completions,提供 OpenAI-co
 component.storepilot.agent_service,exposes,api.health,提供 5 个健康检查路由。,packages/agent-service/src/api/health.ts:L1-L18,0.92
 component.storepilot.agent_service,calls,tool.*,通过 MCPClient 调用 7 个 ERP MCP 工具。,packages/agent-service/src/mastra/mcp/client.ts:L36-L55,0.92
 component.storepilot.mcp_mock_server,registers,tool.*,mock-server 注册 7 个工具并支持 fixtures。,packages/mcp-mock-server/src/mcp-server.ts:L85-L190,0.92
-domain.Merchant,owns,domain.Store,商家拥有多个门店。,docs/门店助手Agent_V1_本体模型文档.md:L131-L153,0.92
-domain.Store,has,domain.InventorySnapshot,门店拥有 SKU 库存快照。,docs/门店助手Agent_V1_本体模型文档.md:L131-L153,0.92
-domain.Store,has,domain.SalesSummary,门店拥有经营销售汇总。,docs/门店助手Agent_V1_本体模型文档.md:L131-L153,0.92
-domain.Category,contains,domain.Sku,品类包含 SKU。,docs/门店助手Agent_V1_本体模型文档.md:L131-L153,0.92
-domain.AgentSession,creates,domain.ReplenishmentDraft,会话创建补货草稿。,docs/门店助手Agent_V1_本体模型文档.md:L131-L153; migrations/002-init-replenishment.sql:L8-L33,0.92
+domain.Merchant,owns,domain.Store,商家拥有多个门店。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L131-L153,0.92
+domain.Store,has,domain.InventorySnapshot,门店拥有 SKU 库存快照。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L131-L153,0.92
+domain.Store,has,domain.SalesSummary,门店拥有经营销售汇总。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L131-L153,0.92
+domain.Category,contains,domain.Sku,品类包含 SKU。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L131-L153,0.92
+domain.AgentSession,creates,domain.ReplenishmentDraft,会话创建补货草稿。,docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md:L131-L153; migrations/002-init-replenishment.sql:L8-L33,0.92
 domain.ReplenishmentDraft,contains,domain.DraftItem,草稿包含补货明细。,packages/shared-contracts/src/drafts.ts:L20-L46,0.92
 domain.ReplenishmentDraft,adjustedBy,domain.AdjustmentInstruction,草稿可被用户调整指令修改。,migrations/002-init-replenishment.sql:L35-L54; migrations/011-extend-replenishment-adjustment-log.sql:L14-L22,0.92
 domain.ReplenishmentDraft,submittedAs,domain.PurchaseOrder,确认后以 createPurchaseOrder 写入 ERP 采购单。,packages/agent-service/src/mastra/workflows/purchase-order-create.ts:L244-L303,0.92

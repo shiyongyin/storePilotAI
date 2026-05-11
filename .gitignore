@@ -25,7 +25,11 @@ coverage/
 /docs/*
 !/docs/ai-ontology/
 !/docs/ai-ontology/**
-!/docs/门店助手Agent_V1_本体模型文档.md
+!/docs/core-doc/
+!/docs/core-doc/version1/
+/docs/core-doc/version1/*
+!/docs/core-doc/version1/门店助手Agent_V1_本体模型文档.md
+/docs/core-doc/version2/
 /completion_checklist.md
 /findings.md
 /intent-e2e-audit.md
