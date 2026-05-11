@@ -96,7 +96,7 @@ verifier 会在以下情况立即失败：
 - `docs/ai-ontology/**` 内出现 `.DS_Store` / `Thumbs.db` / `._*` 等残留文件
 - 任意 required file 被 `.gitignore` 误伤导致无法提交
 - ontology 文档引用的 `packages/` / `migrations/` / `tools/` 路径死链
-- `packages/shared-contracts/src/mcp/*.ts` 工具数量与 7 工具白名单漂移
+- `packages/shared-contracts/src/mcp/*.ts` 工具定义与 V1 7 + V2 9 工具白名单漂移
 - `ai_context_cards.jsonl` 缺字段或卡片 ID 与 cards/*.md 文件不匹配
 - `reference/project_ontology.json` 实体/关系不足或暴露源机器路径
 
@@ -204,7 +204,7 @@ storePilotAI/
 | Runtime | Node.js 22.13.x, pnpm 9.7.x, TypeScript ESM |
 | HTTP | Hono, OpenAI Chat Completions compatible SSE |
 | Agent / Workflow | Mastra 1.0, AI SDK |
-| MCP | `@mastra/mcp`, MCP Streamable HTTP, 7 工具白名单 |
+| MCP | `@mastra/mcp`, MCP Streamable HTTP, V1 7 + V2 9 工具白名单 |
 | 数据库 | MySQL 8, mysql2, Umzug migrations |
 | 契约 | Zod 4, `@storepilot/shared-contracts` |
 | 鉴权 | `sk-agent-*` API Key, argon2id hash, server pepper |
@@ -230,7 +230,7 @@ pnpm install --frozen-lockfile
 
 ## 本地快速启动
 
-本地启动建议分两段：先启动 MySQL 和 MCP mock，完成迁移后再启动 agent-service。agent-service 启动期会校验 MySQL 表数量、Mastra 存储表、MCP 7 工具白名单和 skill 定义；如果迁移未执行，直接 `docker compose up` 会导致 agent-service 健康检查失败。
+本地启动建议分两段：先启动 MySQL 和 MCP mock，完成迁移后再启动 agent-service。agent-service 启动期会校验 MySQL 表数量、Mastra 存储表、MCP V1 7 + V2 9 工具白名单和 skill 定义；如果迁移未执行，直接 `docker compose up` 会导致 agent-service 健康检查失败。
 
 ### AI 辅助启动
 
@@ -530,14 +530,23 @@ pnpm --filter @storepilot/tools-seed-strategy start -- --file strategy.json --dr
 
 ## MCP 工具白名单
 
-Agent 启动时会校验 ERP MCP server 暴露的工具集合必须严格等于以下 7 个工具：
+Agent 启动时会校验 ERP MCP server 暴露的工具集合必须严格等于以下 16 个工具：
 
 - `createPurchaseOrder`
 - `getStoreReportConfig`
+- `query_campaign_history`
 - `queryCategorySalesRatio`
+- `query_coupon_inventory`
 - `queryInventoryOverview`
+- `query_inventory_status`
+- `query_member_consumption_history`
+- `query_member_profile`
+- `query_member_segments`
 - `queryProductSalesRank`
+- `query_pos_summary_by_time`
 - `queryReplenishmentBaseData`
+- `query_product_performance`
+- `query_repurchase_cycle`
 - `queryStoreSalesSummary`
 
 任意 missing、extra 或 schema 缺失都会导致 agent-service fail-fast。这样可以避免 ERP 工具漂移后业务在运行时才失败。
@@ -614,7 +623,7 @@ DATABASE_URL='mysql://root:rootpw@127.0.0.1:3306/store_pilot' pnpm migrate:up
 - `ERP_MCP_SERVER_URL` 是否指向正确的 MCP server。
 - `MCP_TENANT_SHARED_SECRET` 是否与 MCP server 一致。
 - dev mock 是否启用了 `MCP_ENABLE_WRITE_TOOLS=true`。
-- 真实 ERP MCP 是否暴露完整 7 工具和 input/output schema。
+- 真实 ERP MCP 是否暴露完整 V1 7 + V2 9 工具和 input/output schema。
 
 ### LobeChat 请求 401
 
