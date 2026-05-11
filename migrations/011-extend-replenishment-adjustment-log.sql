@@ -11,12 +11,66 @@
 -- 老行无需回填即可继续工作。`applied=1` 由切片 15 写入时设置。
 -- ============================================================================
 
-ALTER TABLE replenishment_adjustment_log
-  ADD COLUMN IF NOT EXISTS before_items_json JSON NULL
-    COMMENT '调整前 DraftItem[] 全文（切片 15）',
-  ADD COLUMN IF NOT EXISTS after_items_json  JSON NULL
-    COMMENT '调整后 DraftItem[] 全文（切片 15）',
-  ADD COLUMN IF NOT EXISTS instruction_json  JSON NULL
-    COMMENT '完整 AdjustmentInstruction JSON（切片 15）',
-  ADD COLUMN IF NOT EXISTS affected_sku_ids  JSON NULL
-    COMMENT '被影响 SKU ID 数组（切片 15 §9 步骤 5 验收依据）';
+SET @before_items_json_missing := (
+  SELECT COUNT(*) = 0
+    FROM information_schema.columns
+   WHERE table_schema = DATABASE()
+     AND table_name = 'replenishment_adjustment_log'
+     AND column_name = 'before_items_json'
+);
+SET @ddl := IF(
+  @before_items_json_missing,
+  'ALTER TABLE replenishment_adjustment_log ADD COLUMN before_items_json JSON NULL COMMENT ''调整前 DraftItem[] 全文（切片 15）''',
+  'SELECT 1'
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @after_items_json_missing := (
+  SELECT COUNT(*) = 0
+    FROM information_schema.columns
+   WHERE table_schema = DATABASE()
+     AND table_name = 'replenishment_adjustment_log'
+     AND column_name = 'after_items_json'
+);
+SET @ddl := IF(
+  @after_items_json_missing,
+  'ALTER TABLE replenishment_adjustment_log ADD COLUMN after_items_json JSON NULL COMMENT ''调整后 DraftItem[] 全文（切片 15）''',
+  'SELECT 1'
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @instruction_json_missing := (
+  SELECT COUNT(*) = 0
+    FROM information_schema.columns
+   WHERE table_schema = DATABASE()
+     AND table_name = 'replenishment_adjustment_log'
+     AND column_name = 'instruction_json'
+);
+SET @ddl := IF(
+  @instruction_json_missing,
+  'ALTER TABLE replenishment_adjustment_log ADD COLUMN instruction_json JSON NULL COMMENT ''完整 AdjustmentInstruction JSON（切片 15）''',
+  'SELECT 1'
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @affected_sku_ids_missing := (
+  SELECT COUNT(*) = 0
+    FROM information_schema.columns
+   WHERE table_schema = DATABASE()
+     AND table_name = 'replenishment_adjustment_log'
+     AND column_name = 'affected_sku_ids'
+);
+SET @ddl := IF(
+  @affected_sku_ids_missing,
+  'ALTER TABLE replenishment_adjustment_log ADD COLUMN affected_sku_ids JSON NULL COMMENT ''被影响 SKU ID 数组（切片 15 §9 步骤 5 验收依据）''',
+  'SELECT 1'
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;

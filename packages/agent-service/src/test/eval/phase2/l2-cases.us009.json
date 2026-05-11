@@ -1,0 +1,41 @@
+[
+  {
+    "id": "L2-US009-001",
+    "usCode": "US-009",
+    "coveredUs": ["US-009"],
+    "userMessage": "这周主推哪些商品更划算",
+    "expectedTools": {
+      "mustCall": ["query_product_performance", "query_inventory_status"],
+      "shouldCall": ["query_member_segments", "query_campaign_history"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 5
+  },
+  {
+    "id": "L2-US009-002",
+    "usCode": "US-009",
+    "coveredUs": ["US-009"],
+    "userMessage": "帮我挑几款利润空间好的鞋，顺便给适合人群和话术",
+    "expectedTools": {
+      "mustCall": ["query_product_performance", "query_inventory_status"],
+      "shouldCall": ["query_member_segments", "query_campaign_history"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 5
+  },
+  {
+    "id": "L2-US009-003",
+    "usCode": "US-009",
+    "coveredUs": ["US-009"],
+    "userMessage": "最近适合重点推哪几款商品，别直接上活动",
+    "expectedTools": {
+      "mustCall": ["query_product_performance", "query_inventory_status"],
+      "shouldCall": ["query_member_segments", "query_campaign_history"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 5
+  }
+]

@@ -1,0 +1,78 @@
+name: V2 Phase2 Eval
+
+on:
+  pull_request:
+    branches: [main, master, develop]
+  workflow_dispatch: {}
+
+concurrency:
+  group: v2-phase2-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  phase2-eval:
+    name: Phase2 L2/L3/L4 eval gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    env:
+      NODE_ENV: test
+      MODEL_BASE_URL: http://localhost:7100/llm
+      MODEL_NAME: gpt-test
+      ERP_MCP_SERVER_URL: http://127.0.0.1:7300/mcp
+      MCP_TENANT_SHARED_SECRET: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      AGENT_API_KEY_HASH_SALT: ci-test-salt-32chars-xxxxxxxxxxxxx
+      CORS_ALLOWED_ORIGINS: http://localhost:3210
+      MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+      L3_EVAL_JUDGE_API_KEY: ${{ secrets.L3_EVAL_JUDGE_API_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.7.0
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Phase2 schema and dry gate
+        run: |
+          pnpm --filter @storepilot/agent-service exec vitest run src/test/eval/phase2/case-schema.test.ts
+          pnpm --filter @storepilot/agent-service test:eval:phase2:dry
+
+      - name: Phase2 L2 gate
+        run: pnpm --filter @storepilot/agent-service test:eval:phase2:l2
+
+      - name: Phase2 L3 gate
+        run: pnpm --filter @storepilot/agent-service test:eval:phase2:l3
+
+      - name: Phase2 L4 redline gate
+        run: pnpm --filter @storepilot/agent-service test:eval:phase2:l4
+
+      - name: Phase2 scope classifier gate
+        run: pnpm --filter @storepilot/agent-service test:eval:phase2:scope
+
+      - name: V1 regression gates
+        run: |
+          pnpm --filter @storepilot/agent-service test:v1-intent-eval
+          pnpm --filter @storepilot/agent-service test:v1-workflow
+
+      - name: Report PII grep
+        run: rg "1[0-9]{10}|phoneFull|nameFull|tool_calls|function_call" reports/phase2-eval eval-reports && exit 1 || true
+
+      - name: Upload phase2 eval reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-eval-reports
+          path: reports/phase2-eval/
+          retention-days: 30

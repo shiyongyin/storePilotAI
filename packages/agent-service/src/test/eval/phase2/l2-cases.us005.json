@@ -1,0 +1,41 @@
+[
+  {
+    "id": "L2-US005-001",
+    "usCode": "US-005",
+    "coveredUs": ["US-005"],
+    "userMessage": "哪些老客最值得我亲自维护一下",
+    "expectedTools": {
+      "mustCall": ["query_member_segments"],
+      "shouldCall": ["query_member_profile"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 5
+  },
+  {
+    "id": "L2-US005-002",
+    "usCode": "US-005",
+    "coveredUs": ["US-005"],
+    "userMessage": "帮我看下消费高又常来的会员",
+    "expectedTools": {
+      "mustCall": ["query_member_segments"],
+      "shouldCall": ["query_campaign_history"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 5
+  },
+  {
+    "id": "L2-US005-003",
+    "usCode": "US-005",
+    "coveredUs": ["US-005"],
+    "userMessage": "重点熟客这周该怎么关怀，不要上来就低价促销",
+    "expectedTools": {
+      "mustCall": ["query_member_segments"],
+      "shouldCall": ["query_member_consumption_history", "query_member_profile"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 5
+  }
+]

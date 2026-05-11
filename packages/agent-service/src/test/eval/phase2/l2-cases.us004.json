@@ -1,0 +1,41 @@
+[
+  {
+    "id": "L2-US004-001",
+    "usCode": "US-004",
+    "coveredUs": ["US-004"],
+    "userMessage": "哪些顾客差不多该回来买鞋了",
+    "expectedTools": {
+      "mustCall": ["query_member_segments", "query_repurchase_cycle"],
+      "shouldCall": ["query_member_consumption_history"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 4
+  },
+  {
+    "id": "L2-US004-002",
+    "usCode": "US-004",
+    "coveredUs": ["US-004"],
+    "userMessage": "上次买鞋到现在时间挺久的，哪些人该提醒",
+    "expectedTools": {
+      "mustCall": ["query_member_segments", "query_repurchase_cycle"],
+      "shouldCall": ["query_member_consumption_history"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 4
+  },
+  {
+    "id": "L2-US004-003",
+    "usCode": "US-004",
+    "coveredUs": ["US-004"],
+    "userMessage": "帮我找下快到复购周期的老客，只看顾客复购提醒",
+    "expectedTools": {
+      "mustCall": ["query_member_segments", "query_repurchase_cycle"],
+      "shouldCall": ["query_member_consumption_history"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 4
+  }
+]

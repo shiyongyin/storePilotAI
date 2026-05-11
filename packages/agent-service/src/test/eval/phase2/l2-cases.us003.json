@@ -1,0 +1,41 @@
+[
+  {
+    "id": "L2-US003-001",
+    "usCode": "US-003",
+    "coveredUs": ["US-003"],
+    "userMessage": "有没有很久没来的老客户需要我联系一下",
+    "expectedTools": {
+      "mustCall": ["query_member_segments"],
+      "shouldCall": ["query_coupon_inventory", "query_member_consumption_history"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 1,
+    "maxSteps": 5
+  },
+  {
+    "id": "L2-US003-002",
+    "usCode": "US-003",
+    "coveredUs": ["US-003"],
+    "userMessage": "最近哪些会员好久没进店了，帮我分一下原因",
+    "expectedTools": {
+      "mustCall": ["query_member_segments"],
+      "shouldCall": ["query_repurchase_cycle"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 1,
+    "maxSteps": 5
+  },
+  {
+    "id": "L2-US003-003",
+    "usCode": "US-003",
+    "coveredUs": ["US-003"],
+    "userMessage": "帮我看看哪些老客该重新联系一下，别直接发券",
+    "expectedTools": {
+      "mustCall": ["query_member_segments"],
+      "shouldCall": ["query_coupon_inventory"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 1,
+    "maxSteps": 5
+  }
+]

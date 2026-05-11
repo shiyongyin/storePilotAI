@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
+import { TOOL_NAMES } from '../packages/shared-contracts/dist/mcp/index.js';
 
 const root = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 const args = new Set(process.argv.slice(2));
@@ -250,7 +251,10 @@ async function runRuntimeChecks() {
   try {
     agent = await startAgent(7191, 7391);
     const health = await fetch('http://127.0.0.1:7191/health/mcp').then((res) => res.json());
-    record('/health/mcp exposes 7 tools', Array.isArray(health.tools) && health.tools.length === 7);
+    record(
+      `/health/mcp exposes ${TOOL_NAMES.length} tools`,
+      Array.isArray(health.tools) && health.tools.length === TOOL_NAMES.length,
+    );
     record(
       'startup fourth line mcp-tools-verified',
       agent.output.includes('[startup] mcp-tools-verified'),

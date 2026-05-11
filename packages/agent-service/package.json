@@ -11,6 +11,13 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "test:eval:phase2:dry": "tsx scripts/run-phase2-eval.ts --layer=dry",
+    "test:eval:phase2:l2": "tsx scripts/run-phase2-eval.ts --layer=l2",
+    "test:eval:phase2:l3": "tsx scripts/run-phase2-eval.ts --layer=l3",
+    "test:eval:phase2:l4": "tsx scripts/run-phase2-eval.ts --layer=l4",
+    "test:eval:phase2:scope": "tsx scripts/run-phase2-eval.ts --layer=scope",
+    "test:v1-intent-eval": "vitest run src/mastra/agents/intent-router-eval.test.ts",
+    "test:v1-workflow": "vitest run src/api/v1-explicit-command-router.test.ts src/api/business-report-dispatcher.test.ts src/mastra/workflows/replenishment-forecast.workflow.test.ts",
     "verify-external-skills": "tsx scripts/verify-external-skills.ts",
     "release:verify": "pnpm exec tsx scripts/verify-external-skills.ts && pnpm typecheck && pnpm test && pnpm test:e2e"
   },

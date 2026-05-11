@@ -1,0 +1,51 @@
+[
+  {
+    "id": "L2-US008-001",
+    "usCode": "US-008",
+    "coveredUs": ["US-008"],
+    "userMessage": "会员 MBR_00123 现在买了 SKU001，收银台还能顺手推荐什么",
+    "expectedTools": {
+      "mustCall": [
+        "query_member_profile",
+        "query_member_consumption_history",
+        "query_product_performance",
+        "query_inventory_status"
+      ],
+      "shouldCall": ["query_repurchase_cycle"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 4,
+    "maxSteps": 6
+  },
+  {
+    "id": "L2-US008-002",
+    "usCode": "US-008",
+    "coveredUs": ["US-008"],
+    "userMessage": "没有会员信息，顾客篮子里有 SKU001，收银加一句推荐什么",
+    "expectedTools": {
+      "mustCall": ["query_product_performance", "query_inventory_status"],
+      "shouldCall": [],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 4
+  },
+  {
+    "id": "L2-US008-003",
+    "usCode": "US-008",
+    "coveredUs": ["US-008"],
+    "userMessage": "顾客已经到店看鞋了，别直接下单，给店员几句搭配建议",
+    "expectedTools": {
+      "mustCall": [
+        "query_member_profile",
+        "query_member_consumption_history",
+        "query_product_performance",
+        "query_inventory_status"
+      ],
+      "shouldCall": ["query_repurchase_cycle"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 4,
+    "maxSteps": 6
+  }
+]

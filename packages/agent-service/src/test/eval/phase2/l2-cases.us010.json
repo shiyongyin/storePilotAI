@@ -1,0 +1,41 @@
+[
+  {
+    "id": "L2-US010-001",
+    "usCode": "US-010",
+    "coveredUs": ["US-010"],
+    "userMessage": "店里哪些货压得久了需要处理",
+    "expectedTools": {
+      "mustCall": ["query_inventory_status", "query_product_performance"],
+      "shouldCall": ["query_campaign_history"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 5
+  },
+  {
+    "id": "L2-US010-002",
+    "usCode": "US-010",
+    "coveredUs": ["US-010"],
+    "userMessage": "临期和卖不动的货帮我排个处理清单",
+    "expectedTools": {
+      "mustCall": ["query_inventory_status", "query_product_performance"],
+      "shouldCall": ["query_campaign_history"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 5
+  },
+  {
+    "id": "L2-US010-003",
+    "usCode": "US-010",
+    "coveredUs": ["US-010"],
+    "userMessage": "滞销库存怎么处理，别直接帮我清仓改价",
+    "expectedTools": {
+      "mustCall": ["query_inventory_status", "query_product_performance"],
+      "shouldCall": ["query_campaign_history"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 5
+  }
+]

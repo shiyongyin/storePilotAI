@@ -1,0 +1,41 @@
+[
+  {
+    "id": "L2-US006-001",
+    "usCode": "US-006",
+    "coveredUs": ["US-006"],
+    "userMessage": "上周第一次来的顾客有没有该回访的",
+    "expectedTools": {
+      "mustCall": ["query_member_segments"],
+      "shouldCall": ["query_member_consumption_history", "query_product_performance"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 4
+  },
+  {
+    "id": "L2-US006-002",
+    "usCode": "US-006",
+    "coveredUs": ["US-006"],
+    "userMessage": "哪些新顾客还没第二次到店",
+    "expectedTools": {
+      "mustCall": ["query_member_segments"],
+      "shouldCall": ["query_member_consumption_history"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 4
+  },
+  {
+    "id": "L2-US006-003",
+    "usCode": "US-006",
+    "coveredUs": ["US-006"],
+    "userMessage": "新买过一次的顾客怎么带回来，别直接发提醒",
+    "expectedTools": {
+      "mustCall": ["query_member_segments"],
+      "shouldCall": ["query_member_consumption_history", "query_product_performance"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 4
+  }
+]

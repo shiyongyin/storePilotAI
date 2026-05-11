@@ -68,6 +68,22 @@ module.exports = {
       files: ['**/*.test.ts', '**/*.spec.ts'],
       rules: { 'no-console': 'off' },
     },
+    {
+      // Phase 2 Eval case schema keeps `maxSteps` as test-data contract, not runtime model options.
+      files: [
+        'packages/agent-service/src/test/eval/phase2/case-schema.ts',
+        'packages/agent-service/src/test/eval/phase2/**/*.test.ts',
+      ],
+      rules: { 'no-restricted-syntax': 'off' },
+    },
+    {
+      // Phase 2 Eval runners are CLI-style local test harnesses.
+      files: [
+        'packages/agent-service/scripts/**/*.ts',
+        'packages/agent-service/src/test/eval/phase2/runner-*.ts',
+      ],
+      rules: { 'no-console': 'off' },
+    },
   ],
   ignorePatterns: [
     'dist',

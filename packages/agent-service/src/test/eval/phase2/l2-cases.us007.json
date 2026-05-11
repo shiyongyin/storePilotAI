@@ -1,0 +1,41 @@
+[
+  {
+    "id": "L2-US007-001",
+    "usCode": "US-007",
+    "coveredUs": ["US-007"],
+    "userMessage": "哪些会员卡里还有钱一直没花",
+    "expectedTools": {
+      "mustCall": ["query_member_segments", "query_coupon_inventory"],
+      "shouldCall": ["query_member_profile"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 4
+  },
+  {
+    "id": "L2-US007-002",
+    "usCode": "US-007",
+    "coveredUs": ["US-007"],
+    "userMessage": "积分快到期的人怎么提醒比较合适",
+    "expectedTools": {
+      "mustCall": ["query_member_segments", "query_coupon_inventory"],
+      "shouldCall": ["query_member_profile"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 4
+  },
+  {
+    "id": "L2-US007-003",
+    "usCode": "US-007",
+    "coveredUs": ["US-007"],
+    "userMessage": "有没有券快过期还没用的人",
+    "expectedTools": {
+      "mustCall": ["query_member_segments", "query_coupon_inventory"],
+      "shouldCall": ["query_member_profile"],
+      "mustNotCall": ["create\u0050urchaseOrder"]
+    },
+    "minSteps": 2,
+    "maxSteps": 4
+  }
+]
