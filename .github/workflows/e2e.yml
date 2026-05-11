@@ -37,7 +37,7 @@ jobs:
 
     env:
       # E2E 期间业务模块通过 MYSQL_TEST_URL 拿到的连接字符串
-      MYSQL_TEST_URL: mysql://root:rootpw@127.0.0.1:3306
+      MYSQL_TEST_URL: mysql://root:rootpw@127.0.0.1:3306/store_pilot
       DATABASE_URL: mysql://root:rootpw@127.0.0.1:3306/store_pilot
       NODE_ENV: test
       # E2E 默认 env（任务卡 §7 MUST NOT §1：禁止外网；以下值仅满足 zod fail-fast）

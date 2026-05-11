@@ -35,7 +35,7 @@ jobs:
 
     env:
       # 测试期默认 MySQL 连接（agent-service 集成测试用）
-      MYSQL_TEST_URL: mysql://root:rootpw@127.0.0.1:3306
+      MYSQL_TEST_URL: mysql://root:rootpw@127.0.0.1:3306/store_pilot
       DATABASE_URL: mysql://root:rootpw@127.0.0.1:3306/store_pilot
       NODE_ENV: test
       # 测试默认 env（避免 env zod fail-fast；真实值仅在 E2E / 部署使用）
