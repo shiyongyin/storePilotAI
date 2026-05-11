@@ -25,4 +25,10 @@ describe('api output guard', () => {
       }),
     ).toEqual({ ok: true });
   });
+
+  it('accepts plain text when tool calls > 0 (clarify / pure-text answer path)', () => {
+    expect(
+      validateMarketingAgentOutput({ text: '您指的是会员还是商品？' }, 2),
+    ).toEqual({ ok: true });
+  });
 });

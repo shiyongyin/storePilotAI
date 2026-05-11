@@ -136,14 +136,15 @@ export function createBusinessReportDispatcher(args: {
         const r = (await activeMarketingGrowthCopilot.generate(latestUserMessage, {
           requestContext: ctx as never,
           stopWhen: stepCountIs(MARKETING_AGENT_MAX_STEPS),
-        })) as { text?: string };
+        })) as { text?: string; toolCalls?: unknown[] };
+        const toolCallCount = Array.isArray(r?.toolCalls) ? r.toolCalls.length : 0;
         const guard = validateMarketingAgentOutput(
           r?.text === undefined ? {} : { text: r.text },
-          1,
+          toolCallCount,
         );
         if (!guard.ok) {
           logger.warn(
-            { fallbackReason: guard.fallbackReason },
+            { fallbackReason: guard.fallbackReason, toolCallCount },
             '[dispatch] marketingGrowthCopilot output rejected; falling back to generalQa',
           );
           const fallback = await runGeneralQa(activeGeneralQa, latestUserMessage, dispatchArgs);

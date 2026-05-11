@@ -499,6 +499,82 @@ describe('business-report-dispatcher', () => {
     resetEnvForTest();
   });
 
+  it('marketingGrowthCopilot 返回纯文本但有 tool 调用 → 直接展示（不回退 generalQa）', async () => {
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'true');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', 'S001');
+    const { resetEnvForTest } = await import('../config/env.js');
+    resetEnvForTest();
+    classifyMarketingScopeMock.mockResolvedValue({
+      scope: 'V2_IN_SCOPE',
+      confidence: 0.93,
+      candidates: ['US-003'],
+      degraded: false,
+    });
+    const injectedMarketing = {
+      generate: vi.fn().mockResolvedValue({
+        text: '查了下，沉睡会员主要集中在两个月未到店的散客，您要先看名单还是先看建议话术？',
+        toolCalls: [{ name: 'query_member_segments' }],
+      }),
+    };
+    const injectedGeneralQa = {
+      generate: vi.fn().mockResolvedValue({ text: '不应被调用' }),
+    };
+
+    const dispatcher = createBusinessReportDispatcher({
+      agents: {
+        generalQa: injectedGeneralQa,
+        marketingGrowthCopilot: injectedMarketing,
+        requirementCollector: { generate: vi.fn() },
+      } as unknown as DispatcherAgentsForTest,
+    });
+    const result = await dispatcher(buildArgs('沉睡会员'));
+
+    expect(injectedMarketing.generate).toHaveBeenCalledTimes(1);
+    expect(injectedGeneralQa.generate).not.toHaveBeenCalled();
+    expect(result.finalText).toContain('沉睡会员主要集中在');
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'false');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', '');
+    resetEnvForTest();
+  });
+
+  it('marketingGrowthCopilot 完全空跑（0 工具 + 0 card_data）→ 拒绝并回退 generalQa', async () => {
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'true');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', 'S001');
+    const { resetEnvForTest } = await import('../config/env.js');
+    resetEnvForTest();
+    classifyMarketingScopeMock.mockResolvedValue({
+      scope: 'V2_IN_SCOPE',
+      confidence: 0.93,
+      candidates: ['US-003'],
+      degraded: false,
+    });
+    const injectedMarketing = {
+      generate: vi.fn().mockResolvedValue({
+        text: '随便编一段没有数据来源的建议',
+        toolCalls: [],
+      }),
+    };
+    const injectedGeneralQa = {
+      generate: vi.fn().mockResolvedValue({ text: 'V1 兜底回复' }),
+    };
+
+    const dispatcher = createBusinessReportDispatcher({
+      agents: {
+        generalQa: injectedGeneralQa,
+        marketingGrowthCopilot: injectedMarketing,
+        requirementCollector: { generate: vi.fn() },
+      } as unknown as DispatcherAgentsForTest,
+    });
+    const result = await dispatcher(buildArgs('沉睡会员'));
+
+    expect(injectedMarketing.generate).toHaveBeenCalledTimes(1);
+    expect(injectedGeneralQa.generate).toHaveBeenCalledTimes(1);
+    expect(result.finalText).toBe('V1 兜底回复');
+    vi.stubEnv('MARKETING_AGENT_ENABLED', 'false');
+    vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', '');
+    resetEnvForTest();
+  });
+
   it('灰度开启且 AMBIGUOUS → 返回枚举候选澄清选项，不进入 Agent', async () => {
     vi.stubEnv('MARKETING_AGENT_ENABLED', 'true');
     vi.stubEnv('MARKETING_AGENT_ENABLED_STORE_WHITELIST', 'S001');

@@ -1,14 +1,21 @@
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { z } from 'zod';
 import { generateText } from 'ai';
 
 import { getEnv } from '../config/env.js';
 import { getModel } from '../mastra/llm-provider.js';
-import scopeClassifierExamples from '../../scripts/scope-classifier-examples.json';
 import { US_DISPLAY_NAMES, type UsCode, isUsCode } from '../marketing/phase2/us-display-names.js';
 import { resolveExplicitV1Intent } from './v1-explicit-command-router.js';
 
 export const MarketingScopeSchema = z.enum(['V2_IN_SCOPE', 'AMBIGUOUS', 'OUT_OF_SCOPE']);
 export type MarketingScope = z.infer<typeof MarketingScopeSchema>;
+
+// 模型自报置信度低于此阈值时，parser 强制归一为 AMBIGUOUS，防止模型把握不足却进入营销/V1 链路。
+// 阈值与 system prompt 中的软约束保持一致；调阈值时两边同步。
+export const MARKETING_SCOPE_AMBIGUOUS_CONFIDENCE_THRESHOLD = 0.6;
 
 export const UsCodeSchema = z.enum([
   'US-001',
@@ -70,7 +77,14 @@ const ScopeExampleSchema = z.object({
   candidates: z.array(UsCodeSchema).max(3).optional(),
 });
 
-const examples = z.array(ScopeExampleSchema).parse(scopeClassifierExamples) as ScopeExample[];
+const examplesPath = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  '../../scripts/scope-classifier-examples.json',
+);
+
+const examples = z
+  .array(ScopeExampleSchema)
+  .parse(JSON.parse(readFileSync(examplesPath, 'utf8')) as unknown) as ScopeExample[];
 
 export function validateScopeClassifierExamples(): {
   total: number;
@@ -147,9 +161,21 @@ export async function classifyMarketingScope(
 export function parseScopeClassifierText(text: string): ScopeOutput {
   const raw = extractJsonObject(text);
   const parsed = ScopeTextOutputSchema.parse(JSON.parse(raw) as unknown);
+  const normalizedScope = parsed.scope === 'IN_SCOPE' ? 'V2_IN_SCOPE' : parsed.scope;
+  if (
+    normalizedScope !== 'AMBIGUOUS' &&
+    parsed.confidence < MARKETING_SCOPE_AMBIGUOUS_CONFIDENCE_THRESHOLD
+  ) {
+    return ScopeOutputSchema.parse({
+      ...parsed,
+      scope: 'AMBIGUOUS',
+      reason: `LOW_CONFIDENCE_FROM_${normalizedScope}`,
+      degraded: false,
+    });
+  }
   return ScopeOutputSchema.parse({
     ...parsed,
-    scope: parsed.scope === 'IN_SCOPE' ? 'V2_IN_SCOPE' : parsed.scope,
+    scope: normalizedScope,
     degraded: false,
   });
 }

@@ -5,7 +5,10 @@ export type MarketingOutputGuardResult =
   | { ok: true }
   | { ok: false; fallbackReason: 'AGENT_OUTPUT_INVALID' | 'AGENT_OUTPUT_FORGED_TAG' };
 
-export function validateMarketingAgentOutput(output: { text?: string }, toolCallCount = 0): MarketingOutputGuardResult {
+export function validateMarketingAgentOutput(
+  output: { text?: string },
+  toolCallCount = 0,
+): MarketingOutputGuardResult {
   const text = output.text ?? '';
   if (FORGED_BRIDGE_TAG.test(text)) {
     return { ok: false, fallbackReason: 'AGENT_OUTPUT_FORGED_TAG' };

@@ -80,4 +80,47 @@ describe('marketing-scope-classifier', () => {
       degraded: false,
     });
   });
+
+  it('low-confidence V2_IN_SCOPE is normalized to AMBIGUOUS with traceable reason', () => {
+    expect(
+      parseScopeClassifierText('{"scope":"V2_IN_SCOPE","confidence":0.55,"candidates":["US-003"]}'),
+    ).toMatchObject({
+      scope: 'AMBIGUOUS',
+      confidence: 0.55,
+      reason: 'LOW_CONFIDENCE_FROM_V2_IN_SCOPE',
+      degraded: false,
+    });
+  });
+
+  it('low-confidence OUT_OF_SCOPE is also normalized to AMBIGUOUS (no silent V1 leak)', () => {
+    expect(
+      parseScopeClassifierText('{"scope":"OUT_OF_SCOPE","confidence":0.4}'),
+    ).toMatchObject({
+      scope: 'AMBIGUOUS',
+      confidence: 0.4,
+      reason: 'LOW_CONFIDENCE_FROM_OUT_OF_SCOPE',
+    });
+  });
+
+  it('confidence exactly at 0.6 boundary is kept as model-reported scope', () => {
+    expect(
+      parseScopeClassifierText('{"scope":"V2_IN_SCOPE","confidence":0.6,"candidates":["US-003"]}'),
+    ).toMatchObject({ scope: 'V2_IN_SCOPE', confidence: 0.6 });
+  });
+
+  it('high-confidence model output passes through unchanged', () => {
+    expect(
+      parseScopeClassifierText('{"scope":"OUT_OF_SCOPE","confidence":0.92,"reason":"V1 question"}'),
+    ).toMatchObject({ scope: 'OUT_OF_SCOPE', confidence: 0.92, reason: 'V1 question' });
+  });
+
+  it('low-confidence AMBIGUOUS keeps original AMBIGUOUS and does not rewrite reason', () => {
+    expect(
+      parseScopeClassifierText('{"scope":"AMBIGUOUS","confidence":0.3,"candidates":["US-013"]}'),
+    ).toMatchObject({
+      scope: 'AMBIGUOUS',
+      confidence: 0.3,
+      candidates: ['US-013'],
+    });
+  });
 });
