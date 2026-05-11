@@ -11,6 +11,7 @@ import { z } from 'zod';
 
 const FixtureProfile = z.enum([
   'happy-path',
+  'marketing-shoe-store',
   'missing-category-ratio',
   'slow-sales-summary',
   'create-po-idempotent',
@@ -38,10 +39,19 @@ const EnvSchema = z.object({
     .enum([
       'createPurchaseOrder',
       'getStoreReportConfig',
+      'query_campaign_history',
       'queryCategorySalesRatio',
+      'query_coupon_inventory',
       'queryInventoryOverview',
+      'query_inventory_status',
+      'query_member_consumption_history',
+      'query_member_profile',
+      'query_member_segments',
       'queryProductSalesRank',
+      'query_pos_summary_by_time',
       'queryReplenishmentBaseData',
+      'query_product_performance',
+      'query_repurchase_cycle',
       'queryStoreSalesSummary',
     ])
     .optional(),

@@ -1,5 +1,5 @@
 /**
- * 切片 05 — Mock MCP Server(注册 7 工具,schema 全部从 shared-contracts/mcp 导入)
+ * 切片 05 — Mock MCP Server(注册 V1 7 工具 + V2 9 个营销工具,schema 全部从 shared-contracts/mcp 导入)
  * 严格按 docs/任务卡/G-MCP-Mock.md §T-MCP-01.5 落地。
  *
  * 强约束:
@@ -10,7 +10,7 @@
  *   - createPurchaseOrder 用内存 Map 幂等(同 idempotencyKey 同 PO 号)
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { ToolContracts } from '@storepilot/shared-contracts/mcp';
+import { MARKETING_GROWTH_TOOLS, ToolContracts } from '@storepilot/shared-contracts/mcp';
 import type { PurchaseOrderResult } from '@storepilot/shared-contracts/mcp';
 import { z } from 'zod';
 
@@ -91,7 +91,7 @@ export function createMcpServer(envOverride?: Env): McpServer {
     protocolVersion: env.MCP_PROTOCOL_VERSION,
   } as { name: string; version: string; protocolVersion: string });
 
-  // --- 6 个 QUERY 工具(readOnlyHint:true) ---
+  // --- V1 6 个 QUERY 工具 + V2 9 个 marketing QUERY 工具(readOnlyHint:true) ---
   const queryTools: Array<{
     name: keyof typeof ToolContracts;
     title: string;
@@ -103,6 +103,11 @@ export function createMcpServer(envOverride?: Env): McpServer {
     { name: 'queryProductSalesRank', title: '商品销售榜', description: '门店商品销售 Top N 排行' },
     { name: 'queryInventoryOverview', title: '库存概览', description: '门店库存概览(总数 / 低库存 / 缺货 / 在库价值)' },
     { name: 'queryReplenishmentBaseData', title: '补货基础数据', description: '门店补货预测所需(库存 / 销量 / 在途 / 提前期)' },
+    ...MARKETING_GROWTH_TOOLS.map((name) => ({
+      name,
+      title: `V2 营销工具 ${name}`,
+      description: `V2 marketingGrowthCopilot 只读工具 ${name}`,
+    })),
   ];
 
   for (const tool of queryTools) {

@@ -50,7 +50,7 @@ export type { AgentRunLog, SkillRunLog } from './runlog.js';
 export { OpenAiRequest } from './http.js';
 
 // MCP ToolContracts(切片 05)— 顶层重新导出关键符号;深路径 '@storepilot/shared-contracts/mcp' 由 package.json exports 提供
-export { TOOL_NAMES, ToolContracts } from './mcp/index.js';
+export { MARKETING_GROWTH_TOOLS, MarketingToolContracts, TOOL_NAMES, ToolContracts } from './mcp/index.js';
 export type { ToolContractName } from './mcp/index.js';
 
 // Errors

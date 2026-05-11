@@ -10,6 +10,7 @@
 import type { FixtureProfile } from '../config/env.js';
 
 import { happyPathFixtures } from '../fixtures/happy-path/index.js';
+import { marketingShoeStoreFixtures } from '../fixtures/marketing-shoe-store/index.js';
 import { missingCategoryRatioFixtures } from '../fixtures/missing-category-ratio/index.js';
 import { slowSalesSummaryFixtures } from '../fixtures/slow-sales-summary/index.js';
 import { createPoIdempotentFixtures } from '../fixtures/create-po-idempotent/index.js';
@@ -22,6 +23,7 @@ export type ProfileFixtures = Partial<Record<string, FixtureFn>>;
 
 const REGISTRY: Record<FixtureProfile, ProfileFixtures> = {
   'happy-path': happyPathFixtures,
+  'marketing-shoe-store': marketingShoeStoreFixtures,
   'missing-category-ratio': missingCategoryRatioFixtures,
   'slow-sales-summary': slowSalesSummaryFixtures,
   'create-po-idempotent': createPoIdempotentFixtures,

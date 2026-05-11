@@ -1,0 +1,28 @@
+[
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "campaignId": "CAMP_2026FEB",
+    "campaignName": "情人节搭配活动",
+    "status": "FINISHED",
+    "dateRange": { "startDate": "2026-02-10", "endDate": "2026-02-14" },
+    "touchedMembers": 120,
+    "convertedMembers": 18,
+    "salesAmount": 12880,
+    "grossMarginRate": 0.25,
+    "resultSummary": "销售有提升但毛利率下降 5pp"
+  },
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "campaignId": "CAMP_2025NOV",
+    "campaignName": "双 11 老客回访",
+    "status": "FINISHED",
+    "dateRange": { "startDate": "2025-11-08", "endDate": "2025-11-12" },
+    "touchedMembers": 150,
+    "convertedMembers": 42,
+    "salesAmount": 38900,
+    "grossMarginRate": 0.41,
+    "resultSummary": "复购率提升 18%，毛利保持稳定"
+  }
+]

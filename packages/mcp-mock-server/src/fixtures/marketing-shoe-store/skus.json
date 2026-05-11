@@ -1,0 +1,41 @@
+[
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "skuId": "SKU001",
+    "skuName": "轻跑鞋 SKU001",
+    "categoryId": "CAT_RUNNING",
+    "categoryName": "跑步鞋",
+    "salesQty": 86,
+    "salesAmount": 25680,
+    "grossMarginRate": 0.46,
+    "trend": "UP",
+    "inventoryStatus": "IN_STOCK"
+  },
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "skuId": "SKU078",
+    "skuName": "春款休闲鞋 SKU078",
+    "categoryId": "CAT_CASUAL",
+    "categoryName": "休闲鞋",
+    "salesQty": 6,
+    "salesAmount": 1794,
+    "grossMarginRate": 0.22,
+    "trend": "DOWN",
+    "inventoryStatus": "NEAR_EXPIRY"
+  },
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "skuId": "SKU021",
+    "skuName": "儿童运动鞋 SKU021",
+    "categoryId": "CAT_KIDS",
+    "categoryName": "童鞋",
+    "salesQty": 48,
+    "salesAmount": 14352,
+    "grossMarginRate": 0.38,
+    "trend": "FLAT",
+    "inventoryStatus": "IN_STOCK"
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "couponId": "CPN_00135_001",
+    "memberId": "MBR_00135",
+    "memberNameMasked": "李女士",
+    "couponType": "CASH",
+    "amount": 30,
+    "threshold": 199,
+    "validFrom": "2026-05-01",
+    "validTo": "2026-05-15",
+    "daysToExpire": 5,
+    "status": "UNUSED"
+  },
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "couponId": "CPN_00135_002",
+    "memberId": "MBR_00135",
+    "memberNameMasked": "李女士",
+    "couponType": "DISCOUNT",
+    "discount": 0.88,
+    "threshold": 299,
+    "validFrom": "2026-04-20",
+    "validTo": "2026-05-30",
+    "daysToExpire": 20,
+    "status": "UNUSED"
+  },
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "couponId": "CPN_00135_003",
+    "memberId": "MBR_00135",
+    "memberNameMasked": "李女士",
+    "couponType": "GIFT",
+    "threshold": 159,
+    "validFrom": "2026-04-25",
+    "validTo": "2026-06-05",
+    "daysToExpire": 26,
+    "status": "UNUSED"
+  },
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "couponId": "CPN_00123_001",
+    "memberId": "MBR_00123",
+    "memberNameMasked": "王女士",
+    "couponType": "GIFT",
+    "threshold": 399,
+    "validFrom": "2026-05-01",
+    "validTo": "2026-05-20",
+    "daysToExpire": 10,
+    "status": "UNUSED"
+  }
+]

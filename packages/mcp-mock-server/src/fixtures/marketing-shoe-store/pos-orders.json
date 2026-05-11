@@ -1,0 +1,41 @@
+[
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "orderId": "ORD_20260310_00123",
+    "memberId": "MBR_00123",
+    "orderDate": "2026-03-10",
+    "salesAmount": 399,
+    "itemCount": 1,
+    "skuIds": ["SKU001"]
+  },
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "orderId": "ORD_20260401_00135",
+    "memberId": "MBR_00135",
+    "orderDate": "2026-04-01",
+    "salesAmount": 298,
+    "itemCount": 1,
+    "skuIds": ["SKU021"]
+  },
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "orderId": "ORD_20260415_00142",
+    "memberId": "MBR_00142",
+    "orderDate": "2026-04-15",
+    "salesAmount": 399,
+    "itemCount": 1,
+    "skuIds": ["SKU021"]
+  },
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "orderId": "ORD_20260509_WALKIN",
+    "orderDate": "2026-05-09",
+    "salesAmount": 198,
+    "itemCount": 1,
+    "skuIds": ["SKU078"]
+  }
+]

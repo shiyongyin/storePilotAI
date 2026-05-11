@@ -1,0 +1,33 @@
+[
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "skuId": "SKU001",
+    "skuName": "轻跑鞋 SKU001",
+    "availableQty": 62,
+    "stockAgeDays": 18,
+    "slowMovingFlag": false,
+    "status": "IN_STOCK"
+  },
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "skuId": "SKU078",
+    "skuName": "春款休闲鞋 SKU078",
+    "availableQty": 41,
+    "stockAgeDays": 90,
+    "nearExpiryDays": 5,
+    "slowMovingFlag": true,
+    "status": "NEAR_EXPIRY"
+  },
+  {
+    "merchantId": "M001",
+    "storeId": "S001",
+    "skuId": "SKU021",
+    "skuName": "儿童运动鞋 SKU021",
+    "availableQty": 35,
+    "stockAgeDays": 22,
+    "slowMovingFlag": false,
+    "status": "IN_STOCK"
+  }
+]

@@ -3,7 +3,7 @@
  *
  * 强约束(任务卡 §7 MUST DO §4-5):
  *   - TOOL_NAMES 必须按字典序排序(启动期白名单 JSON.stringify 比对依赖)
- *   - TOOL_NAMES.length === 7
+ *   - TOOL_NAMES.length === 16(V1 7 + V2 marketing 9)
  *   - ToolContracts 顺序与 TOOL_NAMES 一致(便于 grep / diff)
  *
  * 任意下游切片(08 启动校验 / 12-17 调用方)新增/重命名工具必须先回填本文件。
@@ -27,6 +27,7 @@ export {
   queryReplenishmentBaseData,
 } from './queryReplenishmentBaseData.js';
 export { DailySalesPoint, StoreSalesSummary, queryStoreSalesSummary } from './queryStoreSalesSummary.js';
+export * from './marketing.js';
 
 import { createPurchaseOrder } from './createPurchaseOrder.js';
 import { getStoreReportConfig } from './getStoreReportConfig.js';
@@ -35,16 +36,15 @@ import { queryInventoryOverview } from './queryInventoryOverview.js';
 import { queryProductSalesRank } from './queryProductSalesRank.js';
 import { queryReplenishmentBaseData } from './queryReplenishmentBaseData.js';
 import { queryStoreSalesSummary } from './queryStoreSalesSummary.js';
+import { MarketingToolContracts } from './marketing.js';
 
 /**
- * ToolContracts(字典序):
- * createPurchaseOrder / getStoreReportConfig / queryCategorySalesRatio /
- * queryInventoryOverview / queryProductSalesRank /
- * queryReplenishmentBaseData / queryStoreSalesSummary
+ * ToolContracts(字典序): V1 7 工具 + V2 marketing 9 工具。
  */
 export const ToolContracts = {
   createPurchaseOrder,
   getStoreReportConfig,
+  ...MarketingToolContracts,
   queryCategorySalesRatio,
   queryInventoryOverview,
   queryProductSalesRank,

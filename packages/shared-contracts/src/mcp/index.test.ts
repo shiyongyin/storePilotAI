@@ -1,14 +1,11 @@
-/**
- * 切片 05 — ToolContracts barrel + TOOL_NAMES 单测
- * 关键断言:7 项 + 字典序 + 与切片 08 启动期白名单 JSON.stringify 严格相等比对依据
- */
 import { describe, expect, it } from 'vitest';
 
 import { ToolContracts, TOOL_NAMES } from './index.js';
+import { MARKETING_GROWTH_TOOLS, MarketingToolContracts } from './marketing.js';
 
-describe('TOOL_NAMES(切片 05 SSOT,字典序)', () => {
-  it('TOOL_NAMES.length === 7', () => {
-    expect(TOOL_NAMES).toHaveLength(7);
+describe('TOOL_NAMES(SSOT,字典序)', () => {
+  it('TOOL_NAMES.length === 16(V1 7 + V2 marketing 9)', () => {
+    expect(TOOL_NAMES).toHaveLength(16);
   });
 
   it('TOOL_NAMES 与 ToolContracts keys 一致', () => {
@@ -20,7 +17,7 @@ describe('TOOL_NAMES(切片 05 SSOT,字典序)', () => {
     expect(TOOL_NAMES).toEqual(sorted);
   });
 
-  it('TOOL_NAMES 完整 7 项符合 SSOT', () => {
+  it('TOOL_NAMES 完整 16 项符合 SSOT', () => {
     expect(TOOL_NAMES).toEqual([
       'createPurchaseOrder',
       'getStoreReportConfig',
@@ -29,11 +26,47 @@ describe('TOOL_NAMES(切片 05 SSOT,字典序)', () => {
       'queryProductSalesRank',
       'queryReplenishmentBaseData',
       'queryStoreSalesSummary',
+      'query_campaign_history',
+      'query_coupon_inventory',
+      'query_inventory_status',
+      'query_member_consumption_history',
+      'query_member_profile',
+      'query_member_segments',
+      'query_pos_summary_by_time',
+      'query_product_performance',
+      'query_repurchase_cycle',
     ]);
   });
 
   it.each([...TOOL_NAMES])('ToolContracts[%s] 含 input + output schema', (name) => {
     const c = ToolContracts[name];
+    expect(c).toBeDefined();
+    expect(typeof c.input.parse).toBe('function');
+    expect(typeof c.output.parse).toBe('function');
+  });
+});
+
+describe('MARKETING_GROWTH_TOOLS(V2 Phase1 SSOT)', () => {
+  it('包含 9 个只读营销工具且严格字典序', () => {
+    expect(MARKETING_GROWTH_TOOLS).toEqual([
+      'query_campaign_history',
+      'query_coupon_inventory',
+      'query_inventory_status',
+      'query_member_consumption_history',
+      'query_member_profile',
+      'query_member_segments',
+      'query_pos_summary_by_time',
+      'query_product_performance',
+      'query_repurchase_cycle',
+    ]);
+  });
+
+  it('MarketingToolContracts 与 MARKETING_GROWTH_TOOLS 完全一致', () => {
+    expect(new Set(Object.keys(MarketingToolContracts))).toEqual(new Set(MARKETING_GROWTH_TOOLS));
+  });
+
+  it.each([...MARKETING_GROWTH_TOOLS])('MarketingToolContracts[%s] 含 input + output schema', (name) => {
+    const c = MarketingToolContracts[name];
     expect(c).toBeDefined();
     expect(typeof c.input.parse).toBe('function');
     expect(typeof c.output.parse).toBe('function');

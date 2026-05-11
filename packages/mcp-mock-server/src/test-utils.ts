@@ -30,9 +30,9 @@ export interface CreateMcpAppArgs {
    */
   port?: number;
   /**
-   * 是否注册写工具 `createPurchaseOrder`；`false` 时仅 6 个读工具，
+   * 是否注册写工具 `createPurchaseOrder`；`false` 时仅注册读工具，
    * 用于覆盖"缺工具启动失败"集成用例（I-02 期望 process.exit(1)）。
-   * 默认 `true`（7 工具齐全）。
+   * 默认 `true`（完整工具白名单）。
    */
   enableWriteTools?: boolean;
   /**

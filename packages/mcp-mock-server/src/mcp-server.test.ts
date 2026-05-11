@@ -41,8 +41,36 @@ describe('createMcpServer', () => {
       (mcpServer as unknown as { _registeredTools: Record<string, unknown> })._registeredTools,
     );
 
-    expect(toolNames).toHaveLength(6);
+    expect(toolNames).toHaveLength(15);
     expect(toolNames).not.toContain('createPurchaseOrder');
+  });
+
+  it('registers all 9 V2 marketing query tools as read-only', async () => {
+    const { createMcpServer } = await loadServer();
+
+    const mcpServer = createMcpServer();
+    const tools = (mcpServer as unknown as {
+      _registeredTools: Record<string, { annotations: unknown; inputSchema?: unknown; outputSchema?: unknown }>;
+    })._registeredTools;
+
+    const marketingTools = [
+      'query_campaign_history',
+      'query_coupon_inventory',
+      'query_inventory_status',
+      'query_member_consumption_history',
+      'query_member_profile',
+      'query_member_segments',
+      'query_pos_summary_by_time',
+      'query_product_performance',
+      'query_repurchase_cycle',
+    ];
+
+    for (const name of marketingTools) {
+      expect(tools[name], `${name} should be registered`).toBeDefined();
+      expect(tools[name]?.annotations).toEqual({ readOnlyHint: true });
+      expect(tools[name]?.inputSchema).toBeDefined();
+      expect(tools[name]?.outputSchema).toBeDefined();
+    }
   });
 
   it('marks query tools read-only and createPurchaseOrder idempotent', async () => {

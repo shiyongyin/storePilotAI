@@ -132,7 +132,7 @@ export function createMcpMockApp(env: Env): Express {
       version: '1.0.0',
       protocolVersion: env.MCP_PROTOCOL_VERSION,
       fixtureProfile: env.FIXTURE_PROFILE,
-      toolCount: env.MCP_ENABLE_WRITE_TOOLS ? 7 : 6,
+      toolCount: env.MCP_ENABLE_WRITE_TOOLS ? 16 : 15,
     });
   });
 
@@ -157,7 +157,7 @@ export function startMcpMockServer(env: Env): HttpServer {
         port: env.PORT,
         protocolVersion: env.MCP_PROTOCOL_VERSION,
         fixtureProfile: env.FIXTURE_PROFILE,
-        toolCount: env.MCP_ENABLE_WRITE_TOOLS ? 7 : 6,
+        toolCount: env.MCP_ENABLE_WRITE_TOOLS ? 16 : 15,
       },
       '[mcp-mock] listening',
     );
