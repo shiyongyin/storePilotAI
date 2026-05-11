@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import path from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 
 import {
@@ -8,6 +9,8 @@ import {
 } from '../../test-helpers/external-skill-fixture.js';
 
 const fixtures: ExternalSkillFixture[] = [];
+const AGENT_SERVICE_ROOT = path.resolve(__dirname, '../../..');
+const TSX_CLI = path.resolve(AGENT_SERVICE_ROOT, '../../node_modules/tsx/dist/cli.mjs');
 
 function runVerify(env: Record<string, string | undefined>): Promise<{
   code: number | null;
@@ -17,9 +20,9 @@ function runVerify(env: Record<string, string | undefined>): Promise<{
   return new Promise((resolve) => {
     const child = spawn(
       process.execPath,
-      ['../../node_modules/tsx/dist/cli.mjs', 'scripts/verify-external-skills.ts'],
+      [TSX_CLI, 'scripts/verify-external-skills.ts'],
       {
-        cwd: process.cwd(),
+        cwd: AGENT_SERVICE_ROOT,
         env: { ...process.env, ...env },
         stdio: ['ignore', 'pipe', 'pipe'],
       },

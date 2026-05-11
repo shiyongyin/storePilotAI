@@ -135,8 +135,11 @@ export type ExternalSkillFile = ExternalSkillEntry['files'][number];
 export function isSafePosixRelativePath(value: string): boolean {
   if (value.length === 0) return false;
   if (value.startsWith('/') || value.startsWith('./')) return false;
-  if (value.includes('\\') || value.includes('\0')) return false;
-  if (/[\u0000-\u001f\u007f]/.test(value)) return false;
+  if (value.includes('\\') || value.includes(String.fromCharCode(0))) return false;
+  if ([...value].some((char) => {
+    const code = char.charCodeAt(0);
+    return code <= 0x1f || code === 0x7f;
+  })) return false;
   const segments = value.split('/');
   return segments.every((segment) => segment.length > 0 && segment !== '.' && segment !== '..');
 }

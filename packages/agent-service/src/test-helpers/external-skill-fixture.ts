@@ -2,14 +2,16 @@ import { createHash } from 'node:crypto';
 import { cp, mkdir, mkdtemp, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import {
   EXTERNAL_SKILL_MAX_FILE_BYTES,
-  EXTERNAL_SKILL_MAX_TOTAL_BYTES,
   type Env,
 } from '../config/env.js';
 
-export const EXTERNAL_SKILL_FIXTURE_ROOT = path.resolve('tests/fixtures/external-skills');
+export const EXTERNAL_SKILL_FIXTURE_ROOT = fileURLToPath(
+  new URL('../../tests/fixtures/external-skills', import.meta.url),
+);
 
 export const externalSkillBaseEnv: Env = {
   NODE_ENV: 'test',
@@ -22,6 +24,12 @@ export const externalSkillBaseEnv: Env = {
   MODEL_TIMEOUT_MS: 25_000,
   MAX_OUTPUT_TOKENS: 4096,
   MAX_TOOL_CALLS_PER_REQUEST: 8,
+  MARKETING_AGENT_ENABLED: false,
+  MARKETING_AGENT_MAX_STEPS: 8,
+  MARKETING_AGENT_ENABLED_STORE_WHITELIST: '',
+  MARKETING_AGENT_ROLLOUT_PERCENT: 0,
+  MARKETING_SCOPE_CLASSIFIER_TIMEOUT_MS: 1500,
+  AGENT_TOOL_CALLS_PER_REQUEST_HARD_LIMIT: 8,
   ERP_MCP_SERVER_URL: 'http://localhost:7300/mcp',
   MCP_TENANT_SHARED_SECRET: 'a'.repeat(32),
   MCP_PROTOCOL_VERSION: '2025-06-18',
