@@ -28,6 +28,7 @@
     --node-tool: #2a2418;
     --node-contract: #1c2a1c;
     --node-mcp: #2d1c2d;
+    --node-package: #182833;
   }
   * { box-sizing: border-box; }
   html, body {
@@ -60,6 +61,69 @@
   header .legend span.dot {
     display: inline-block; width: 10px; height: 10px;
     border-radius: 3px; margin-right: 4px; vertical-align: middle;
+  }
+  #package-index {
+    padding: 10px 24px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px;
+  }
+  .pkg-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--panel-2);
+    padding: 8px 10px;
+    min-height: 74px;
+  }
+  .pkg-card .pkg-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .pkg-card .pkg-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .pkg-card .pkg-count {
+    display: inline-flex;
+    align-items: center;
+    height: 18px;
+    padding: 0 7px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--accent);
+    font-size: 10px;
+  }
+  #flow-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel-2);
+  }
+  #flow-search {
+    width: min(420px, 100%);
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text);
+    padding: 0 10px;
+    font: inherit;
+  }
+  #flow-search:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  #flow-count {
+    color: var(--text-muted);
+    font-size: 11px;
+    white-space: nowrap;
   }
   nav#action-bar {
     padding: 10px 24px;
@@ -99,10 +163,14 @@
     color: #0d1117;
     font-weight: 600;
   }
+  nav#action-bar button[hidden],
+  nav#action-bar .cat-group[hidden] {
+    display: none;
+  }
   main {
     display: grid;
     grid-template-columns: 1fr 380px;
-    height: calc(100vh - 138px);
+    height: calc(100vh - 260px);
     min-height: 600px;
   }
   #graph-wrap {
@@ -156,6 +224,7 @@
   .node.type-tool rect { fill: var(--node-tool); }
   .node.type-contract rect { fill: var(--node-contract); }
   .node.type-mcp rect { fill: var(--node-mcp); }
+  .node.type-package rect { fill: var(--node-package); }
   .node.dim rect { opacity: 0.25; }
   .node.dim text { opacity: 0.35; }
   .node.active rect {
@@ -371,6 +440,48 @@
     font-size: 11px;
     color: var(--accent);
   }
+  .source-list {
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .source-list li {
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 3px 0;
+    border-bottom: 1px dashed rgba(139, 148, 158, 0.18);
+  }
+  .source-list code {
+    color: var(--accent);
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  .source-list button {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--accent);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .source-list button:hover {
+    text-decoration: underline;
+  }
+  @media (max-width: 980px) {
+    main {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+    aside#detail {
+      border-left: 0;
+      border-top: 1px solid var(--border);
+      max-height: none;
+    }
+    #flow-toolbar {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  }
 </style>
 </head>
 <body>
@@ -388,8 +499,16 @@
     <span><span class="dot" style="background:#2d1f29"></span>持久化</span>
     <span><span class="dot" style="background:#1c2a1c"></span>共享契约</span>
     <span><span class="dot" style="background:#2a2418"></span>运维工具</span>
+    <span><span class="dot" style="background:#182833"></span>包 / Workspace</span>
   </div>
 </header>
+
+<section id="package-index" aria-label="包与组件索引"></section>
+
+<div id="flow-toolbar">
+  <input id="flow-search" type="search" placeholder="搜索动作、包、组件或标签，例如：邀请、build、MCP、营销" aria-label="搜索动作流程">
+  <div id="flow-count"></div>
+</div>
 
 <nav id="action-bar"></nav>
 
@@ -420,6 +539,10 @@
     { "id": "lobechat", "label": "LobeChat", "sub": "OpenAI 兼容客户端", "type": "external", "column": "external", "package": "external" },
     { "id": "operator", "label": "运维操作员", "sub": "CLI / CI Pipeline", "type": "external", "column": "external", "package": "external" },
     { "id": "k8s", "label": "K8s / 容器编排", "sub": "SIGTERM, livenessProbe", "type": "external", "column": "external", "package": "external" },
+    { "id": "todesktop-cli", "label": "ToDesktop CLI", "sub": "外部桌面壳打包", "type": "external", "column": "external", "package": "external" },
+
+    { "id": "root-workspace", "label": "storepilot-ai workspace", "sub": "pnpm workspace 根项目", "type": "package", "column": "api", "package": "root", "path": "package.json" },
+    { "id": "pkg-agent-service", "label": "@storepilot/agent-service", "sub": "API / Agent / Workflow 主服务", "type": "package", "column": "api", "package": "agent-service", "path": "packages/agent-service/package.json" },
 
     { "id": "chat-completions", "label": "/v1/chat/completions", "sub": "Hono Router", "type": "api", "column": "api", "package": "agent-service", "path": "src/api/chat-completions.ts" },
     { "id": "v1-router", "label": "v1-explicit-command-router", "sub": "显式 V1 指令短路", "type": "api", "column": "api", "package": "agent-service", "path": "src/api/v1-explicit-command-router.ts" },
@@ -452,27 +575,102 @@
 
     { "id": "mcp-client", "label": "mastra/mcp/client", "sub": "MCP Client + 工具白名单", "type": "mcp", "column": "infra", "package": "agent-service", "path": "src/mastra/mcp/client.ts" },
     { "id": "mysql-storage", "label": "mastra/storage/mysql-adapter", "sub": "Mastra 持久化", "type": "storage", "column": "infra", "package": "agent-service", "path": "src/mastra/storage/mysql-adapter.ts" },
+    { "id": "pkg-shared-contracts", "label": "@storepilot/shared-contracts", "sub": "跨包契约 SSOT", "type": "package", "column": "infra", "package": "shared-contracts", "path": "packages/shared-contracts/package.json" },
     { "id": "contracts-intent", "label": "shared-contracts/intents", "sub": "Intent 11 枚举 SSOT", "type": "contract", "column": "infra", "package": "shared-contracts", "path": "src/intents.ts" },
     { "id": "contracts-mcp", "label": "shared-contracts/mcp", "sub": "16 工具契约 (V1 7 + V2 9)", "type": "contract", "column": "infra", "package": "shared-contracts", "path": "src/mcp/index.ts" },
     { "id": "contracts-drafts", "label": "shared-contracts/drafts", "sub": "补货草稿 schema", "type": "contract", "column": "infra", "package": "shared-contracts", "path": "src/drafts.ts" },
     { "id": "contracts-skills", "label": "shared-contracts/skills", "sub": "SkillDef schema", "type": "contract", "column": "infra", "package": "shared-contracts", "path": "src/skills.ts" },
 
+    { "id": "pkg-mcp-mock-server", "label": "@storepilot/mcp-mock-server", "sub": "本地 MCP Mock 包", "type": "package", "column": "ops", "package": "mcp-mock-server", "path": "packages/mcp-mock-server/package.json" },
     { "id": "mcp-mock", "label": "mcp-mock-server", "sub": "开发期 MCP Mock", "type": "tool", "column": "ops", "package": "mcp-mock-server", "path": "packages/mcp-mock-server" },
     { "id": "erp-mcp", "label": "ERP MCP", "sub": "生产 MCP 真服务", "type": "external", "column": "ops", "package": "external" },
     { "id": "mysql", "label": "MySQL", "sub": "持久化数据库", "type": "external", "column": "ops", "package": "external" },
     { "id": "llm", "label": "LLM Provider", "sub": "Anthropic / OpenAI ...", "type": "external", "column": "ops", "package": "external" },
+    { "id": "pkg-tools", "label": "tools/*", "sub": "迁移 / API Key / 策略工具包", "type": "package", "column": "ops", "package": "tools", "path": "tools" },
     { "id": "tool-keygen", "label": "tools/api-key-issuer", "sub": "签发 API Key", "type": "tool", "column": "ops", "package": "tools" },
     { "id": "tool-migrate", "label": "tools/migrate-runner", "sub": "数据库迁移", "type": "tool", "column": "ops", "package": "tools" },
     { "id": "tool-seed", "label": "tools/seed-strategy", "sub": "策略种子数据", "type": "tool", "column": "ops", "package": "tools" },
-    { "id": "tool-verify", "label": "tools/verify-* + consistency-check", "sub": "本体/契约/Slice 校验", "type": "tool", "column": "ops", "package": "tools" }
+    { "id": "tool-verify", "label": "tools/verify-* + consistency-check", "sub": "本体/契约/Slice 校验", "type": "tool", "column": "ops", "package": "tools" },
+    { "id": "docker-image", "label": "Docker image", "sub": "agent-service / mcp-mock-server 镜像", "type": "external", "column": "ops", "package": "external" },
+    { "id": "pkg-docs", "label": "docs/*", "sub": "本体 / runbook / 可视化文档", "type": "package", "column": "ops", "package": "docs", "path": "docs" }
   ],
   "flows": [
+    {
+      "id": "root-build",
+      "title": "根项目构建 (pnpm build)",
+      "category": "构建 / 发布",
+      "description": "根脚本执行 pnpm -r --parallel build,并行构建 workspace 内各包。shared-contracts 先作为 TypeScript 契约被 agent-service 与 mcp-mock-server 引用。",
+      "tags": ["build", "pnpm", "workspace"],
+      "sources": ["package.json", "packages/*/package.json", "pnpm-workspace.yaml"],
+      "steps": [
+        { "from": "operator", "to": "root-workspace", "label": "pnpm build", "payload": "root scripts.build = pnpm -r --parallel build" },
+        { "from": "root-workspace", "to": "pkg-shared-contracts", "label": "workspace 并行执行 build", "payload": "tsc -p tsconfig.build.json", "note": "Intent、Skill、MCP schema 是跨包契约 SSOT" },
+        { "from": "pkg-shared-contracts", "to": "contracts-mcp", "label": "产出 MCP 工具契约", "payload": "V1 7 + V2 9 = 16 tools" },
+        { "from": "root-workspace", "to": "pkg-agent-service", "label": "workspace 并行执行 build", "payload": "@storepilot/agent-service → dist/server.js" },
+        { "from": "pkg-agent-service", "to": "contracts-mcp", "label": "编译期引用 shared-contracts", "payload": "MARKETING_GROWTH_TOOLS / SkillDef / HTTP schema" },
+        { "from": "root-workspace", "to": "pkg-mcp-mock-server", "label": "workspace 并行执行 build", "payload": "@storepilot/mcp-mock-server → dist/server.js" },
+        { "from": "pkg-mcp-mock-server", "to": "contracts-mcp", "label": "mock handlers 对齐 schema", "note": "禁止 mock 工具集合与 shared-contracts 漂移" },
+        { "from": "root-workspace", "to": "operator", "label": "exit 0 / exit 1", "payload": "任一包 tsc 失败则根构建失败" }
+      ]
+    },
+    {
+      "id": "agent-release-verify",
+      "title": "agent-service 发布校验",
+      "category": "构建 / 发布",
+      "description": "agent-service 的 release:verify 串行执行 External Skills 校验、typecheck、单测和 e2e,用于发布前阻断契约、沙箱或运行时回归。",
+      "tags": ["release", "verify", "agent-service"],
+      "sources": ["packages/agent-service/package.json", "packages/agent-service/scripts/verify-external-skills.ts"],
+      "steps": [
+        { "from": "operator", "to": "pkg-agent-service", "label": "pnpm --filter @storepilot/agent-service release:verify", "payload": "verify-external-skills && pnpm typecheck && pnpm test && pnpm test:e2e" },
+        { "from": "pkg-agent-service", "to": "tool-verify", "label": "verify-external-skills", "payload": "sha256 / HTTPS allowlist / symlink / 脚本禁用", "note": "External Skills 生产只读、禁脚本、fail-closed" },
+        { "from": "pkg-agent-service", "to": "contracts-skills", "label": "typecheck 引用 SkillDef schema", "payload": "agent_skill_def.required_tools / allowed_intents" },
+        { "from": "pkg-agent-service", "to": "contracts-mcp", "label": "typecheck 引用 MCP schema", "payload": "MCP 工具名和输入输出类型" },
+        { "from": "pkg-agent-service", "to": "tool-verify", "label": "vitest run", "payload": "unit / workflow / safety tests" },
+        { "from": "tool-verify", "to": "pkg-agent-service", "label": "e2e 校验桥接层", "payload": "chat completions / output guard / HITL 等路径" },
+        { "from": "pkg-agent-service", "to": "operator", "label": "发布前结果", "payload": "任一阶段失败则禁止发布" }
+      ]
+    },
+    {
+      "id": "todesktop-build",
+      "title": "ToDesktop build (外部桌面壳)",
+      "category": "构建 / 发布",
+      "description": "ToDesktop 不是当前 workspace 内脚本,这里把它作为外部桌面壳打包动作示例:它只应消费已发布/已部署的 Web/API 入口,不能绕过 agent-service 的鉴权、租户隔离和 OutputGuard。",
+      "tags": ["desktop", "external", "build"],
+      "sources": ["docs/workflows.html", "package.json"],
+      "steps": [
+        { "from": "operator", "to": "todesktop-cli", "label": "todesktop build", "payload": "外部桌面壳构建命令;当前 package.json 未定义该脚本" },
+        { "from": "todesktop-cli", "to": "lobechat", "label": "打包 Web 客户端 / 桌面壳", "payload": "baseUrl 指向 /v1/chat/completions;apiKey 由邀请流程发放", "note": "桌面端不应内置 tenant 明文或绕过 Bearer 鉴权" },
+        { "from": "lobechat", "to": "chat-completions", "label": "运行时仍走 OpenAI-compatible API", "payload": "Authorization: Bearer sk-..." },
+        { "from": "chat-completions", "to": "auth", "label": "服务端解析租户", "payload": "merchantId / storeId / userId / storeRole" },
+        { "from": "chat-completions", "to": "bridge-output-guard", "label": "输出结构隔离", "payload": "不得向桌面端泄漏 tool_calls / function_call" },
+        { "from": "bridge-output-guard", "to": "lobechat", "label": "桌面端只接收可展示文本 / 卡片", "note": "R-HTTP-001 / R-OUT-001 仍由服务端守住" }
+      ]
+    },
+    {
+      "id": "marketing-tool-trace",
+      "title": "V2 营销工具调用审计",
+      "category": "V2 营销",
+      "description": "marketingGrowthCopilot 的工具 wrapper 在每次只读 marketing MCP 调用后 fire-and-forget 写入 agent_tool_call_trace,用于事后追踪工具事实来源;写库失败只 warn,不阻断对话。",
+      "tags": ["audit", "V2", "tool-call-trace"],
+      "gated": true,
+      "risk": "R-SEC-001 / R-V2-PII-001",
+      "sources": ["packages/agent-service/src/mastra/agents/marketing-growth-copilot.ts", "packages/agent-service/src/safety/tool-call-trace.ts", "migrations/017-init-agent-tool-call-trace.sql"],
+      "steps": [
+        { "from": "scope-classifier", "to": "marketing-copilot", "label": "V2_IN_SCOPE + 灰度通过", "payload": "RuntimeContext { traceId, sessionId, merchantId, storeId, userId }" },
+        { "from": "marketing-copilot", "to": "mcp-client", "label": "buildMarketingToolsForRuntime 包装工具", "payload": "模型可见 schema 隐藏 merchantId/storeId" },
+        { "from": "mcp-client", "to": "erp-mcp", "label": "调用 9 个只读 marketing 工具", "payload": "tenant 在 wrapper 内强制注入" },
+        { "from": "mcp-client", "to": "tool-call-trace", "label": "finally 中 recordToolCall", "payload": "{ traceId, sessionId, tenant, toolName, inputArgs, output, elapsedMs, success }" },
+        { "from": "tool-call-trace", "to": "mysql", "label": "INSERT agent_tool_call_trace", "payload": "PII mask + 4KB 摘要截断", "note": "写库失败仅 logger.warn,不影响主链路" },
+        { "from": "marketing-copilot", "to": "output-guard", "label": "输出前仍做 PII / card_data 守卫", "payload": "traceId/merchantId/storeId 不得进入老板可见回复" }
+      ]
+    },
     {
       "id": "startup",
       "title": "服务启动 · 六行绿灯",
       "category": "运维",
       "description": "agent-service 启动序列:env → DB → Mastra 存储 → MCP 工具白名单 → SkillDef → 监听端口,任一步失败即 process.exit(1)。",
       "tags": ["startup", "fail-fast"],
+      "sources": ["packages/agent-service/src/server.ts", "deploy/runbook/01-startup-six-greens.md"],
       "steps": [
         { "from": "operator", "to": "chat-completions", "label": "pnpm dev:agent / docker run", "payload": "env vars: DB_*, MCP_*, MARKETING_*", "note": "启动 server.ts 入口" },
         { "from": "chat-completions", "to": "mysql-storage", "label": "db.ping() + 11 表校验", "payload": "→ [startup] db-ok (line 2)" },
@@ -490,6 +688,7 @@
       "category": "运维",
       "description": "通过 tools/api-key-issuer 为 merchantId/storeId/userId 签发 API Key,落库到 agent_api_key 表(含 store_role),客户端用其访问 /v1/chat/completions。",
       "tags": ["onboarding", "auth"],
+      "sources": ["tools/api-key-issuer/src/issue.ts", "migrations/004-init-api-key.sql", "deploy/runbook/06-onboard-new-customer.md"],
       "steps": [
         { "from": "operator", "to": "tool-keygen", "label": "pnpm issue:apikey --merchant ... --store ... --user ... --role BOSS", "payload": "tenant 三元组 + role" },
         { "from": "tool-keygen", "to": "mysql", "label": "INSERT agent_api_key", "payload": "{ key_hash, merchant_id, store_id, user_id, store_role }", "note": "store_role 控制 V2 营销可见性,默认 BOSS" },
@@ -506,6 +705,7 @@
       "category": "运维",
       "description": "通过 tools/migrate-runner 顺序执行 migrations/*.sql,变更 Agent 运行态表结构;启动校验依赖最新 schema。",
       "tags": ["migration", "schema"],
+      "sources": ["tools/migrate-runner/src/migrate.ts", "migrations/README.md"],
       "steps": [
         { "from": "operator", "to": "tool-migrate", "label": "pnpm migrate:up", "payload": "扫描 migrations/*.sql" },
         { "from": "tool-migrate", "to": "mysql", "label": "BEGIN; <sql>; INSERT migration_history; COMMIT;", "payload": "幂等 + 事务", "note": "每条迁移记录到 migration_history 表" },
@@ -520,6 +720,7 @@
       "category": "V1 业务",
       "description": "用户请求当日经营摘要;dispatcher 调度 business-daily-report workflow,经 MCP 拉取销售/库存/排行,生成 Markdown 卡片并通过 SSE 流式返回。",
       "tags": ["read-only", "V1"],
+      "sources": ["packages/agent-service/src/api/business-report-dispatcher.ts", "packages/agent-service/src/mastra/workflows/business-daily-report.ts"],
       "steps": [
         { "from": "lobechat", "to": "chat-completions", "label": "POST /v1/chat/completions", "payload": "messages: '今日日报'" },
         { "from": "chat-completions", "to": "auth", "label": "verifyBearer", "payload": "tenant 三元组" },
@@ -541,6 +742,7 @@
       "category": "V1 业务",
       "description": "拉取当月与对比周期销售/库存,生成月度摘要、异常洞察和数据源摘要;缺失数据降级展示。",
       "tags": ["read-only", "V1"],
+      "sources": ["packages/agent-service/src/mastra/workflows/business-monthly-report.ts", "docs/ai-ontology/cards/report_number_consistency.md"],
       "steps": [
         { "from": "lobechat", "to": "chat-completions", "label": "POST /v1/chat/completions", "payload": "messages: '本月经营报告'" },
         { "from": "chat-completions", "to": "v1-router", "label": "explicit '月报' 命中", "payload": "Intent.BUSINESS_MONTHLY_REPORT" },
@@ -559,6 +761,7 @@
       "category": "V1 业务",
       "description": "基于补货基础数据 + 库存 + 销量 + 商家策略,生成补货草稿落库到 replenishment_draft 表;不创建采购单。",
       "tags": ["read-only", "draft", "V1"],
+      "sources": ["packages/agent-service/src/mastra/workflows/replenishment-forecast.ts", "packages/agent-service/src/safety/draft-manager.ts"],
       "steps": [
         { "from": "lobechat", "to": "chat-completions", "label": "POST /v1/chat/completions", "payload": "messages: '生成补货建议'" },
         { "from": "chat-completions", "to": "intent-classifier", "label": "未命中显式指令 → LLM 分类", "payload": "Intent.REPLENISHMENT_PLAN" },
@@ -580,6 +783,7 @@
       "category": "V1 业务",
       "description": "用户对已有补货草稿下达调整指令(如 'SKU-001 增加 10 件'),workflow 校验策略上限并写入审计日志。",
       "tags": ["draft", "audit", "V1"],
+      "sources": ["packages/agent-service/src/mastra/workflows/replenishment-adjustment.ts", "docs/ai-ontology/cards/replenishment_draft_state_machine.md"],
       "steps": [
         { "from": "lobechat", "to": "chat-completions", "label": "POST /v1/chat/completions", "payload": "messages: 'SKU-001 改为 50 件'" },
         { "from": "chat-completions", "to": "intent-classifier", "label": "分类", "payload": "Intent.ADJUST_REPLENISHMENT_DRAFT" },
@@ -599,6 +803,7 @@
       "description": "高风险写操作:必须用户明确确认 → ConfirmManager 解析 draftId → workflow 暂停/恢复 → MCP createPurchaseOrder → 持久化结果。绝不从 Markdown 反解析。",
       "tags": ["write", "HITL", "high-risk", "V1"],
       "risk": "R-AI-002 / R-AI-003",
+      "sources": ["packages/agent-service/src/safety/confirm-manager.ts", "packages/agent-service/src/mastra/workflows/purchase-order-create.ts", "docs/ai-ontology/cards/purchase_order_high_risk.md"],
       "steps": [
         { "from": "lobechat", "to": "chat-completions", "label": "POST /v1/chat/completions", "payload": "messages: '确认创建采购单'" },
         { "from": "chat-completions", "to": "intent-classifier", "label": "分类", "payload": "Intent.CONFIRM_CREATE_PURCHASE_ORDER" },
@@ -619,6 +824,7 @@
       "category": "V1 业务",
       "description": "用户取消未确认的草稿;workflow 将状态置为 CANCELED 并写审计;采购单已创建则拒绝。",
       "tags": ["state-machine", "V1"],
+      "sources": ["packages/agent-service/src/mastra/workflows/replenishment-adjustment.ts", "packages/agent-service/src/safety/draft-manager.ts"],
       "steps": [
         { "from": "lobechat", "to": "chat-completions", "label": "POST /v1/chat/completions", "payload": "messages: '取消补货草稿'" },
         { "from": "chat-completions", "to": "intent-classifier", "label": "分类", "payload": "Intent.CANCEL_REPLENISHMENT_DRAFT" },
@@ -635,6 +841,7 @@
       "category": "V1 业务",
       "description": "兜底通用问答 Agent;不调用 MCP,只解释名词或回答经营常识。输出经桥接层隔离 tool_calls。",
       "tags": ["read-only", "fallback", "V1"],
+      "sources": ["packages/agent-service/src/mastra/agents/general-qa.ts", "packages/agent-service/src/bridge/output-guard.ts"],
       "steps": [
         { "from": "lobechat", "to": "chat-completions", "label": "POST /v1/chat/completions", "payload": "messages: '什么是动销率?'" },
         { "from": "chat-completions", "to": "intent-classifier", "label": "分类", "payload": "Intent.GENERAL_QA / EXPLAIN_METRIC" },
@@ -653,6 +860,7 @@
       "tags": ["gating", "V2", "gray"],
       "gated": true,
       "risk": "R-V2-SCOPE-001",
+      "sources": ["packages/agent-service/src/api/v1-explicit-command-router.ts", "packages/agent-service/src/api/marketing-gray-policy.ts", "packages/agent-service/src/api/marketing-scope-classifier.ts"],
       "steps": [
         { "from": "lobechat", "to": "chat-completions", "label": "POST /v1/chat/completions", "payload": "messages: '哪些会员快流失?'" },
         { "from": "chat-completions", "to": "v1-router", "label": "checkExplicitCommand", "payload": "未命中 V1 显式指令" },
@@ -672,6 +880,7 @@
       "tags": ["read-only", "V2", "agent", "max-8-steps"],
       "gated": true,
       "risk": "R-V2-AGENT-001 / R-V2-PII-001 / R-V2-OUTPUT-001",
+      "sources": ["packages/agent-service/src/mastra/agents/marketing-growth-copilot.ts", "packages/agent-service/src/api/output-guard.ts", "docs/ai-ontology/cards/marketing_agent_pii_and_output_guard.md"],
       "steps": [
         { "from": "scope-classifier", "to": "marketing-copilot", "label": "进入 Agent · in_scope=true", "payload": "RuntimeContext{ storeRole, merchantId, storeId, userId }" },
         { "from": "marketing-copilot", "to": "skill-registry", "label": "Agent 守门: allowed intents + required tools", "payload": "skill_code: marketing_growth_copilot", "note": "禁用 createPurchaseOrder 等写工具" },
@@ -690,6 +899,7 @@
       "category": "运维",
       "description": "K8s SIGTERM → 关闭 listener → 等待活跃 SSE 流 ≤25s → abort 残余流 → dispose MCP client → 关闭 MySQL 连接池 → exit 0。",
       "tags": ["shutdown", "graceful"],
+      "sources": ["packages/agent-service/src/server.ts", "packages/agent-service/src/safety/active-streams.ts"],
       "steps": [
         { "from": "k8s", "to": "chat-completions", "label": "SIGTERM", "payload": "terminationGracePeriodSeconds=35" },
         { "from": "chat-completions", "to": "sse", "label": "server.close + waitForActiveStreams(25_000)", "payload": "拒绝新连接 / 等待存量 SSE 排空" },
@@ -706,6 +916,7 @@
       "category": "运维",
       "description": "CI 主门禁 pnpm check:consistency;verify-ai-ontology 校验 28 个 required files / 6 张 high-risk cards / 工具白名单等。",
       "tags": ["ci", "ssot", "drift"],
+      "sources": ["tools/consistency-check.mjs", "tools/verify-ai-ontology.mjs"],
       "steps": [
         { "from": "operator", "to": "tool-verify", "label": "pnpm check:consistency", "payload": "grep + ontology verifier" },
         { "from": "tool-verify", "to": "contracts-mcp", "label": "shared-contracts/mcp 工具集 == V1 7 + V2 9", "note": "TOOL_NAMES 字典序 + 长度 === 16" },
@@ -721,6 +932,7 @@
       "category": "运维",
       "description": "开发期不依赖真实 ERP:agent-service 连 mcp-mock-server,提供与生产 schema 完全一致的 16 个工具回包(V1 7 + V2 9)。",
       "tags": ["dev", "mock"],
+      "sources": ["packages/mcp-mock-server/src/mcp-server.ts", "packages/mcp-mock-server/src/fixtures"],
       "steps": [
         { "from": "operator", "to": "mcp-mock", "label": "pnpm dev:mcp", "payload": "启动 mcp-mock-server :PORT" },
         { "from": "operator", "to": "chat-completions", "label": "pnpm dev:agent", "payload": "MCP_BASE_URL=http://localhost:..." },
@@ -736,6 +948,7 @@
       "category": "运维",
       "description": "通过 tools/seed-strategy 写入 platform/merchant/store 三级策略;Store > Merchant > Platform 合并形成 EffectiveStrategy。",
       "tags": ["seed", "strategy"],
+      "sources": ["tools/seed-strategy/src", "packages/agent-service/src/safety/strategy-engine.ts"],
       "steps": [
         { "from": "operator", "to": "tool-seed", "label": "pnpm seed:strategy --file ...", "payload": "JSON 策略文件" },
         { "from": "tool-seed", "to": "mysql", "label": "INSERT/UPDATE strategy 三级表", "payload": "{ allowAutoPurchaseOrder:false, requireUserConfirmForWrite:true, ... }", "note": "R-STR-002 / R-STR-003 安全开关 V1 不可改" },
@@ -750,6 +963,7 @@
       "category": "V1 业务",
       "description": "用户指令字段不全时,intent-classifier 输出 COLLECT_REQUIREMENT,由 requirement-collector Agent 追问缺失字段后再回到主链路。",
       "tags": ["dialog", "V1"],
+      "sources": ["packages/agent-service/src/mastra/agents/requirement-collector.ts", "packages/agent-service/src/bridge/session.ts"],
       "steps": [
         { "from": "lobechat", "to": "chat-completions", "label": "POST /v1/chat/completions", "payload": "messages: '改一下补货数量'" },
         { "from": "chat-completions", "to": "intent-classifier", "label": "分类", "payload": "Intent.COLLECT_REQUIREMENT (字段不全)" },
@@ -766,6 +980,7 @@
       "category": "运维",
       "description": "/health liveness 完全自包含;readiness 才依赖 DB/MCP/LLM。避免外部抖动导致容器反复重启。",
       "tags": ["k8s", "probe"],
+      "sources": ["packages/agent-service/src/api/health.ts", "deploy/runbook/01-startup-six-greens.md"],
       "steps": [
         { "from": "k8s", "to": "health", "label": "GET /health", "payload": "kubelet liveness probe" },
         { "from": "health", "to": "k8s", "label": "200 OK { status: 'ok' }", "note": "liveness 不依赖 DB/MCP/LLM" },
@@ -794,6 +1009,26 @@
   const NODE_VGAP = 18;
   const TOP_PADDING = 50;
   const LEFT_PADDING = 30;
+
+  const packageLabels = {
+    root: '根 workspace',
+    'agent-service': 'agent-service',
+    'shared-contracts': 'shared-contracts',
+    'mcp-mock-server': 'mcp-mock-server',
+    tools: 'tools',
+    docs: 'docs',
+    external: '外部系统'
+  };
+
+  const packageDescriptions = {
+    root: 'pnpm workspace 编排构建、测试、迁移与开发脚本。',
+    'agent-service': 'Hono API、鉴权、Session、Dispatcher、Mastra Agent/Workflow、安全守卫。',
+    'shared-contracts': 'Intent、SkillDef、HTTP、MCP、Draft 等跨包类型和 schema。',
+    'mcp-mock-server': '本地开发 MCP mock,回包必须与 shared-contracts 对齐。',
+    tools: '迁移、API Key 签发、策略种子和一致性校验脚本。',
+    docs: '本体、运行手册、任务卡和当前可视化页面。',
+    external: '客户端、LLM、MySQL、ERP MCP、容器平台和外部打包工具。'
+  };
 
   function el(tag, attrs, parent) {
     const e = document.createElementNS(SVG_NS, tag);
@@ -937,14 +1172,18 @@
 
   // 渲染动作按钮
   const actionBar = document.getElementById('action-bar');
+  const flowSearch = document.getElementById('flow-search');
+  const flowCount = document.getElementById('flow-count');
   const catGroups = {};
   data.flows.forEach(f => {
     if (!catGroups[f.category]) catGroups[f.category] = [];
     catGroups[f.category].push(f);
   });
+  renderPackageIndex();
   Object.keys(catGroups).forEach(cat => {
     const grp = document.createElement('div');
     grp.className = 'cat-group';
+    grp.dataset.category = cat;
     const lab = document.createElement('span');
     lab.className = 'cat-label';
     lab.textContent = cat;
@@ -953,11 +1192,14 @@
       const b = document.createElement('button');
       b.textContent = f.title;
       b.dataset.flowId = f.id;
+      b.dataset.searchText = buildFlowSearchText(f);
       b.addEventListener('click', () => selectFlow(f.id));
       grp.appendChild(b);
     });
     actionBar.appendChild(grp);
   });
+  flowSearch.addEventListener('input', applyFlowFilter);
+  applyFlowFilter();
 
   let activeFlowId = null;
   let focusedStepIdx = -1;
@@ -1048,11 +1290,13 @@
     const tags = (flow.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
     const risk = flow.risk ? `<span class="tag risk">${flow.risk}</span>` : '';
     const gated = flow.gated ? `<span class="tag gated">灰度门控</span>` : '';
+    const sources = (flow.sources || []).map(s => `<li><code>${escapeHtml(s)}</code></li>`).join('');
     let html = `
       <div class="flow-category">${flow.category}</div>
       <h2 class="flow-title">${flow.title}</h2>
       <div class="flow-meta">${tags}${risk}${gated}</div>
       <div class="flow-desc">${flow.description}</div>
+      ${sources ? `<h3>事实来源</h3><ul class="source-list">${sources}</ul>` : ''}
       <h3>流程步骤 (${flow.steps.length})</h3>
       <ol class="steps">
     `;
@@ -1062,10 +1306,10 @@
       const toLabel = b ? b.label : s.to;
       html += `
         <li data-step-idx="${idx}">
-          <div class="step-edge">${fromLabel} <span class="arrow">→</span> ${toLabel}</div>
-          <div>${s.label || ''}</div>
-          ${s.payload ? `<div class="step-payload">载荷: ${s.payload}</div>` : ''}
-          ${s.note ? `<div class="step-note">⚠ ${s.note}</div>` : ''}
+          <div class="step-edge">${escapeHtml(fromLabel)} <span class="arrow">→</span> ${escapeHtml(toLabel)}</div>
+          <div>${escapeHtml(s.label || '')}</div>
+          ${s.payload ? `<div class="step-payload">载荷: ${escapeHtml(s.payload)}</div>` : ''}
+          ${s.note ? `<div class="step-note">注意: ${escapeHtml(s.note)}</div>` : ''}
         </li>
       `;
     });
@@ -1134,6 +1378,117 @@
       if (found) selectFlow(found.id);
     });
   });
+
+  function renderPackageIndex() {
+    const index = document.getElementById('package-index');
+    const counts = {};
+    data.nodes.forEach(n => {
+      counts[n.package] = (counts[n.package] || 0) + 1;
+    });
+    const order = ['root', 'agent-service', 'shared-contracts', 'mcp-mock-server', 'tools', 'docs', 'external'];
+    order.filter(pkg => counts[pkg]).forEach(pkg => {
+      const card = document.createElement('article');
+      card.className = 'pkg-card';
+      card.innerHTML = `
+        <div class="pkg-name">${escapeHtml(packageLabels[pkg] || pkg)}</div>
+        <div class="pkg-desc">${escapeHtml(packageDescriptions[pkg] || '')}</div>
+        <span class="pkg-count">${counts[pkg]} 个节点</span>
+      `;
+      card.addEventListener('click', () => focusPackage(pkg));
+      index.appendChild(card);
+    });
+  }
+
+  function focusPackage(pkg) {
+    activeFlowId = null;
+    focusedStepIdx = -1;
+    clearActive();
+    Object.values(nodeEls).forEach(g => g.classList.add('dim'));
+    const packageNodes = data.nodes.filter(n => n.package === pkg);
+    packageNodes.forEach(n => {
+      nodeEls[n.id] && nodeEls[n.id].classList.remove('dim');
+      nodeEls[n.id] && nodeEls[n.id].classList.add('active');
+    });
+    renderPackageDetail(pkg, packageNodes);
+  }
+
+  function renderPackageDetail(pkg, packageNodes) {
+    const aside = document.getElementById('detail');
+    const relatedFlows = data.flows.filter(f => f.steps.some(s => {
+      const from = nodeMap[s.from];
+      const to = nodeMap[s.to];
+      return from?.package === pkg || to?.package === pkg;
+    }));
+    aside.innerHTML = `
+      <div class="flow-category">包 / Workspace</div>
+      <h2 class="flow-title">${escapeHtml(packageLabels[pkg] || pkg)}</h2>
+      <div class="flow-desc">${escapeHtml(packageDescriptions[pkg] || '')}</div>
+      <h3>包含节点 (${packageNodes.length})</h3>
+      <ul class="source-list">
+        ${packageNodes.map(n => `<li><code>${escapeHtml(n.label)}</code> ${escapeHtml(n.sub || '')}</li>`).join('')}
+      </ul>
+      <h3>相关动作 (${relatedFlows.length})</h3>
+      <ul class="source-list">
+        ${relatedFlows.map(f => `<li><button type="button" data-related-flow="${escapeHtml(f.id)}">${escapeHtml(f.title)}</button></li>`).join('')}
+      </ul>
+      <div class="footer-tip">点击相关动作可切换到完整流程高亮。</div>
+    `;
+    aside.querySelectorAll('button[data-related-flow]').forEach(button => {
+      button.addEventListener('click', () => selectFlow(button.dataset.relatedFlow));
+    });
+  }
+
+  function applyFlowFilter() {
+    const query = flowSearch.value.trim().toLowerCase();
+    let visible = 0;
+    document.querySelectorAll('nav#action-bar .cat-group').forEach(group => {
+      let groupVisible = 0;
+      group.querySelectorAll('button[data-flow-id]').forEach(button => {
+        const match = query.length === 0 || button.dataset.searchText.includes(query);
+        button.hidden = !match;
+        if (match) {
+          visible++;
+          groupVisible++;
+        }
+      });
+      group.hidden = groupVisible === 0;
+    });
+    flowCount.textContent = query ? `匹配 ${visible} / ${data.flows.length} 个动作` : `共 ${data.flows.length} 个动作`;
+  }
+
+  function buildFlowSearchText(flow) {
+    const parts = [
+      flow.id,
+      flow.title,
+      flow.category,
+      flow.description,
+      ...(flow.tags || []),
+      ...(flow.sources || []),
+      ...flow.steps.flatMap(s => {
+        const from = nodeMap[s.from];
+        const to = nodeMap[s.to];
+        return [
+          s.label,
+          s.payload,
+          s.note,
+          from?.label,
+          from?.package,
+          to?.label,
+          to?.package
+        ];
+      })
+    ];
+    return parts.filter(Boolean).join(' ').toLowerCase();
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
 
   // 默认选第一个流程
   if (data.flows.length > 0) {
